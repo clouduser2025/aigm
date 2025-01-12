@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="ramdoot.jpg" alt="Logo" id="logo">
+            <h1>Trading Dashboard</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="Angel_one.html" target="_blank">Angel One</a></li>
+                <li><a href="mstock.html" target="_blank">M Stock</a></li>
+                <li><a href="Shonnay.html" target="_blank">Shonnay</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <section id="wallet-balance" class="card">
+                <h2>Wallet Balance</h2>
+                <canvas id="walletBalanceChart"></canvas>
+            </section>
+
+            <section id="trade-history" class="card">
+                <h2>Trade History</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Trade ID</th>
+                            <th>Symbol</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trade-history-table-body">
+                        <!-- Trade history will be dynamically populated here -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Trading Application. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        const walletBalanceData = {
+            labels: ['January', 'February', 'March', 'April', 'May'],
+            datasets: [{
+                label: 'Wallet Balance',
+                data: [12000, 15000, 13000, 11000, 14000],
+                backgroundColor: 'rgba(75, 192, 192, 0.5)', // Light teal
+                borderColor: 'rgba(75, 192, 192, 1)', // Dark teal
+                borderWidth: 2,
+                tension: 0.4,
+            }]
+        };
+
+        const ctxWallet = document.getElementById('walletBalanceChart').getContext('2d');
+        const walletBalanceChart = new Chart(ctxWallet, {
+            type: 'line',
+            data: walletBalanceData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff', // Font color for legend labels
+                        },
+                    },
+                    tooltip: {
+                        titleColor: '#ffffff', // Font color for tooltip title
+                        bodyColor: '#ffffff', // Font color for tooltip body
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)', // Tooltip background
+                        borderColor: 'rgba(75, 192, 192, 1)', // Tooltip border
+                        borderWidth: 1,
+                    },
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.2)', // Gridline color
+                        },
+                        ticks: {
+                            color: '#ffffff', // Font color for x-axis labels
+                        },
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.2)', // Gridline color
+                        },
+                        ticks: {
+                            color: '#ffffff', // Font color for y-axis labels
+                        },
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+
+        const tradeHistoryData = [
+            { "trade_id": "123456", "symbol": "SBIN-EQ", "quantity": 2, "price": 20000, "status": "Completed", "date": "2025-01-09" },
+            { "trade_id": "123457", "symbol": "INFY-EQ", "quantity": 1, "price": 1500, "status": "Pending", "date": "2025-01-08" }
+        ];
+
+        const tradeHistoryTableBody = document.getElementById('trade-history-table-body');
+        tradeHistoryData.forEach(trade => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${trade.trade_id}</td>
+                <td>${trade.symbol}</td>
+                <td>${trade.quantity}</td>
+                <td>${trade.price}</td>
+                <td>${trade.status}</td>
+                <td>${trade.date}</td>
+            `;
+            tradeHistoryTableBody.appendChild(row);
+        });
+    </script>
+</body>
+</html>
