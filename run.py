@@ -822,6 +822,12 @@ html {
     }
 
     // 2. PLACE ORDER
+    function toggleStopLossFields() {
+        const stopLossEnabled = document.getElementById("stoploss-enabled").value;
+        const stopLossSettings = document.getElementById("stoploss-settings");
+        stopLossSettings.style.display = stopLossEnabled === "enabled" ? "block" : "none";
+    }
+
     function placeOrder() {
         const orderParams = {
             variety: document.getElementById("order-variety").value,
@@ -832,31 +838,58 @@ html {
             ordertype: document.getElementById("order-ordertype").value,
             producttype: document.getElementById("order-producttype").value,
             duration: document.getElementById("order-duration").value,
-            price: document.getElementById("order-price").value,
-            squareoff: "0",
-            stoploss: "0",
-            quantity: document.getElementById("order-quantity").value
+            price: parseFloat(document.getElementById("order-price").value),
+            quantity: parseInt(document.getElementById("order-quantity").value),
+            stoploss: "0"
         };
+
+        const stopLossEnabled = document.getElementById("stoploss-enabled").value;
+
+        if (stopLossEnabled === "enabled") {
+            const stopLossType = document.getElementById("stoploss-type").value;
+            const stopLossValue = parseFloat(document.getElementById("stoploss-value").value);
+
+            if (isNaN(stopLossValue)) {
+                document.getElementById("order-response").textContent = "Invalid Stop Loss Value.";
+                return;
+            }
+
+            if (stopLossType === "price") {
+                orderParams.stoploss = stopLossValue;
+            } else if (stopLossType === "points") {
+                const entryPrice = orderParams.price;
+                if (entryPrice) {
+                    orderParams.stoploss = (entryPrice - stopLossValue).toFixed(2);
+                } else {
+                    document.getElementById("order-response").textContent = "Entry price is required for Stop Loss by points.";
+                    return;
+                }
+            } else if (stopLossType === "percentage") {
+                const entryPrice = orderParams.price;
+                if (entryPrice) {
+                    orderParams.stoploss = (entryPrice * (1 - stopLossValue / 100)).toFixed(2);
+                } else {
+                    document.getElementById("order-response").textContent = "Entry price is required for Stop Loss by percentage.";
+                    return;
+                }
+            }
+        }
 
         fetch('/api/place_order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ orderParams, authToken, refreshToken })
         })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("order-response");
-            if (data.success) {
-                resp.textContent = "Order placed! ID: " + data.orderid;
-                resp.style.color = "#008000";
-            } else {
-                resp.textContent = "Order failed!\n" + JSON.stringify(data);
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            document.getElementById("order-response").textContent = "Error: " + err;
-        });
+            .then(res => res.json())
+            .then(data => {
+                const responseElement = document.getElementById("order-response");
+                responseElement.textContent = data.success 
+                    ? "Order placed! ID: " + data.orderid 
+                    : "Order failed!\n" + JSON.stringify(data);
+            })
+            .catch(err => {
+                document.getElementById("order-response").textContent = "Error: " + err;
+            });
     }
 
     // 3. CREATE GTT RULE

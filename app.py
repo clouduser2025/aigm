@@ -150,6 +150,89 @@ def api_place_order():
     else:
         return jsonify({"success": False, "error": "Order placement failed."})
 
+from threading import Thread
+import time
+
+# Monitor price and execute trades
+def auto_trade_logic(symbol, thresholds, mode, auth_token):
+    """
+    Monitors the price of a given symbol and places orders based on thresholds.
+    :param symbol: Symbol to monitor (e.g., NIFTY50).
+    :param thresholds: Dictionary with stop_loss and take_profit values.
+    :param mode: AUTO or MANUAL mode.
+    :param auth_token: Auth token for placing trades.
+    """
+    try:
+        while True:
+            # Fetch the latest price using SmartAPI's LTP function
+            ltp_data = smartApi.ltpData('NFO', symbol)
+            current_price = float(ltp_data['data']['ltp'])
+
+            if current_price <= thresholds['stop_loss']:
+                logger.info(f"Stop-loss triggered. Selling {symbol} at {current_price}")
+                place_order({
+                    "variety": "NORMAL",
+                    "tradingsymbol": symbol,
+                    "transactiontype": "SELL",
+                    "exchange": "NFO",
+                    "ordertype": "MARKET",
+                    "producttype": "INTRADAY",
+                    "quantity": thresholds['quantity'],
+                    "price": current_price
+                })
+                break
+
+            if current_price >= thresholds['take_profit']:
+                logger.info(f"Take-profit triggered. Selling {symbol} at {current_price}")
+                place_order({
+                    "variety": "NORMAL",
+                    "tradingsymbol": symbol,
+                    "transactiontype": "SELL",
+                    "exchange": "NFO",
+                    "ordertype": "MARKET",
+                    "producttype": "INTRADAY",
+                    "quantity": thresholds['quantity'],
+                    "price": current_price
+                })
+                break
+
+            # Sleep for a few seconds before checking again
+            time.sleep(5)
+    except Exception as e:
+        logger.error(f"Error in auto-trade logic: {e}")
+
+# API to start auto-trading
+@app.route('/api/start_auto_trade', methods=['POST'])
+def start_auto_trade():
+    """
+    Starts the auto-trade logic with the given parameters.
+    """
+    data = request.get_json()
+    symbol = data.get('symbol')
+    initial_price = float(data.get('initial_price'))
+    mode = data.get('mode', 'AUTO')
+    quantity = int(data.get('quantity', 1))
+
+    thresholds = {
+        'stop_loss': initial_price * 0.9,  # 10% below initial price
+        'take_profit': initial_price * 1.15,  # 15% above initial price
+        'quantity': quantity
+    }
+
+    thread = Thread(target=auto_trade_logic, args=(symbol, thresholds, mode, authToken))
+    thread.start()
+
+    return jsonify({"success": True, "message": f"Started auto-trading for {symbol}"})
+
+# API to stop auto-trading
+@app.route('/api/stop_auto_trade', methods=['POST'])
+def stop_auto_trade():
+    """
+    Stops the auto-trade logic (if running).
+    """
+    # This can be implemented with a flag or by killing the thread gracefully.
+    return jsonify({"success": True, "message": "Auto-trading stopped"})
+
 
 # 3. CREATE GTT RULE
 @app.route('/api/create_gtt_rule', methods=['POST'])

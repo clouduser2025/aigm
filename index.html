@@ -221,15 +221,10 @@ html {
     <button class="btn-nav" onclick="showSection('section2')">Place Order</button>
     <button class="btn-nav" onclick="showSection('section3')">Create GTT</button>
     <button class="btn-nav" onclick="showSection('section4')">List GTT</button>
-    <button class="btn-nav" onclick="showSection('section5')">Call/Put</button>
-    <button class="btn-nav" onclick="showSection('section6')">Auto/Manual</button>
     <button class="btn-nav" onclick="showSection('sectionProfile')">Profile</button>
-    <button class="btn-nav" onclick="showSection('sectionWallet')">Wallet</button>
-    <button class="btn-nav" onclick="showSection('sectionTradeHistory')">Trade History</button>
-    <button class="btn-nav" onclick="showSection('sectionStopLossSettings')">Stop Loss</button>
-    <button class="btn-nav" onclick="showSection('sectionIndicatorSettings')">Indicators</button>
-    <button class="btn-nav" onclick="showSection('sectionErrorAlerts')">Error Alerts</button>
     <button class="btn-nav" onclick="showSection('sectionChart')">Live Chart</button>
+    <button class="btn-nav" onclick="showSection('sectionAutoTrade')">Auto Trade</button>
+
 </div>
 
 <!-- MAIN CONTENT CONTAINER -->
@@ -438,56 +433,6 @@ html {
         </div>
     </div>
 
-    <!-- 5. Call/Put Section -->
-    <div class="row mb-4" id="section5" style="display:none;">
-        <div class="col-lg-12">
-            <div class="card custom-card">
-                <div class="card-body">
-                    <h5 class="card-title">5. Call/Put Options</h5>
-                    <p class="small text-muted" style="color:#000000 !important;">
-                        Choose your Option type and Strike Price. Set "AUTO" trade mode to immediately place an order.
-                    </p>
-                    <div class="mb-3">
-                        <label for="option-type" class="form-label">Option Type</label>
-                        <select id="option-type" class="form-select">
-                            <option value="CALL">Call</option>
-                            <option value="PUT">Put</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="strike-price" class="form-label">Strike Price</label>
-                        <input id="strike-price" type="number" class="form-control" placeholder="Enter Strike Price">
-                    </div>
-                    <button class="btn btn-primary" onclick="selectOption()">Submit</button>
-                    <div id="option-response" class="response-box"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 6. Auto/Manual Buy/Sell -->
-    <div class="row mb-4" id="section6" style="display:none;">
-        <div class="col-lg-12">
-            <div class="card custom-card">
-                <div class="card-body">
-                    <h5 class="card-title">6. Auto/Manual Buy/Sell</h5>
-                    <p class="small text-muted" style="color:#000000 !important;">
-                        Auto: Orders are placed instantly on "Submit" (above). 
-                        Manual: You can confirm before placing.
-                    </p>
-                    <div class="mb-3">
-                        <label for="trade-mode" class="form-label">Trade Mode</label>
-                        <select id="trade-mode" class="form-select">
-                            <option value="AUTO">Auto</option>
-                            <option value="MANUAL" selected>Manual</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-warning" onclick="setTradeMode()">Set Mode</button>
-                    <div id="trade-mode-response" class="response-box"></div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- 7. Profile -->
     <div class="row mb-4" id="sectionProfile" style="display:none;">
@@ -502,135 +447,7 @@ html {
         </div>
     </div>
 
-    <!-- 8. Wallet -->
-    <div class="row mb-4" id="sectionWallet" style="display:none;">
-        <div class="col-lg-12">
-            <div class="card custom-card">
-                <div class="card-body">
-                    <h5 class="card-title">Wallet</h5>
-                    <p>Here you can see your wallet summary, account balance, and recent deposits/withdrawals.</p>
-                    <!-- Example placeholder content -->
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Currency</th>
-                                <th>Balance</th>
-                                <th>Last Deposit</th>
-                                <th>Last Withdrawal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>INR</td>
-                                <td>50000</td>
-                                <td>2023-12-15</td>
-                                <td>2023-12-10</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- 9. Trade History -->
-    <div class="row mb-4" id="sectionTradeHistory" style="display:none;">
-        <div class="col-lg-12">
-            <div class="card custom-card">
-                <div class="card-body">
-                    <h5 class="card-title">Trade History</h5>
-                    <p>Your complete trading history.</p>
-                    <!-- Example placeholder content -->
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Symbol</th>
-                                <th>Buy/Sell</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>PNL</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>2023-12-15</td>
-                                <td>SBIN-EQ</td>
-                                <td>BUY</td>
-                                <td>19500</td>
-                                <td>1</td>
-                                <td>+250</td>
-                            </tr>
-                            <tr>
-                                <td>2023-12-14</td>
-                                <td>SBIN-EQ</td>
-                                <td>SELL</td>
-                                <td>19300</td>
-                                <td>1</td>
-                                <td>-200</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 10. Stop Loss Settings -->
-    <div class="row mb-4" id="sectionStopLossSettings" style="display:none;">
-        <div class="col-lg-12">
-            <div class="card custom-card">
-                <div class="card-body">
-                    <h5 class="card-title">Stop Loss Settings</h5>
-                    <p>Automatically place stop loss orders with certain offsets.</p>
-                    <!-- Example placeholder content -->
-                    <div class="mb-3">
-                        <label class="form-label" for="stoploss-offset">Stop Loss Offset (in %)</label>
-                        <input id="stoploss-offset" type="number" class="form-control" value="2">
-                    </div>
-                    <button class="btn btn-primary">Update Stop Loss Settings</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 11. Indicator Settings -->
-    <div class="row mb-4" id="sectionIndicatorSettings" style="display:none;">
-        <div class="col-lg-12">
-            <div class="card custom-card">
-                <div class="card-body">
-                    <h5 class="card-title">Indicator Settings</h5>
-                    <p>Configure your preferred technical indicators here.</p>
-                    <!-- Example placeholder content -->
-                    <div class="mb-3">
-                        <label class="form-label" for="indicator-rsi">RSI Period</label>
-                        <input id="indicator-rsi" type="number" class="form-control" value="14">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="indicator-macd">MACD Fast/Slow</label>
-                        <input id="indicator-macd" type="text" class="form-control" value="12,26">
-                    </div>
-                    <button class="btn btn-primary">Save Indicator Settings</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 12. Error Alerts -->
-    <div class="row mb-4" id="sectionErrorAlerts" style="display:none;">
-        <div class="col-lg-12">
-            <div class="card custom-card">
-                <div class="card-body">
-                    <h5 class="card-title">Error Alerts</h5>
-                    <p>View recent errors or system alerts here.</p>
-                    <!-- Example placeholder content -->
-                    <ul>
-                        <li>No recent errors</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- 13. LIVE CHART -->
     <div class="row mb-4" id="sectionChart" style="display:none;">
@@ -645,6 +462,42 @@ html {
         </div>
     </div>
 
+</div>
+
+<!-- 14. Auto Trade -->
+<div class="row mb-4" id="sectionAutoTrade" style="display:none;">
+    <div class="col-lg-12">
+        <div class="card custom-card">
+            <div class="card-body">
+                <h5 class="card-title">14. Auto Trade</h5>
+                <p>Configure auto-trading parameters and start or stop trading.</p>
+                <form id="auto-trade-form">
+                    <div class="mb-3">
+                        <label for="auto-symbol" class="form-label">Symbol</label>
+                        <input type="text" id="auto-symbol" class="form-control" placeholder="Enter Symbol (e.g., NIFTY50)">
+                    </div>
+                    <div class="mb-3">
+                        <label for="auto-initial-price" class="form-label">Initial Price</label>
+                        <input type="number" id="auto-initial-price" class="form-control" placeholder="Enter Initial Price">
+                    </div>
+                    <div class="mb-3">
+                        <label for="auto-quantity" class="form-label">Quantity</label>
+                        <input type="number" id="auto-quantity" class="form-control" value="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="auto-mode" class="form-label">Trade Mode</label>
+                        <select id="auto-mode" class="form-select">
+                            <option value="AUTO">Auto</option>
+                            <option value="MANUAL">Manual</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="startAutoTrade()">Start Auto Trade</button>
+                    <button type="button" class="btn btn-danger" onclick="stopAutoTrade()">Stop Auto Trade</button>
+                </form>
+                <div id="auto-trade-response" class="response-box mt-3"></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- FOOTER -->
@@ -754,6 +607,49 @@ html {
         });
     }
 
+    function startAutoTrade() {
+    const symbol = document.getElementById("auto-symbol").value;
+    const initialPrice = parseFloat(document.getElementById("auto-initial-price").value);
+    const quantity = parseInt(document.getElementById("auto-quantity").value);
+    const mode = document.getElementById("auto-mode").value;
+
+    if (!symbol || isNaN(initialPrice) || isNaN(quantity)) {
+        const resp = document.getElementById("auto-trade-response");
+        resp.textContent = "Please fill in all fields with valid data.";
+        resp.style.color = "red";
+        return;
+    }
+
+    fetch('/api/start_auto_trade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol, initial_price: initialPrice, quantity, mode })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const resp = document.getElementById("auto-trade-response");
+        if (data.success) {
+            resp.textContent = data.message;
+            resp.style.color = "green";
+        } else {
+            resp.textContent = "Error: " + data.message;
+            resp.style.color = "red";
+        }
+    })
+    .catch(err => console.error("Failed to start auto-trade:", err));
+}
+
+function stopAutoTrade() {
+    fetch('/api/stop_auto_trade', { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+        const resp = document.getElementById("auto-trade-response");
+        resp.textContent = data.message;
+        resp.style.color = "blue";
+    })
+    .catch(err => console.error("Failed to stop auto-trade:", err));
+}
+
     // 3. CREATE GTT RULE
     function createGttRule() {
         const gttParams = {
@@ -813,84 +709,8 @@ html {
         });
     }
 
-    // 5. SELECT OPTION (CALL/PUT)
-    function selectOption() {
-        const optionType = document.getElementById("option-type").value;  // CALL or PUT
-        const strikePrice = parseFloat(document.getElementById("strike-price").value);
-        const resp = document.getElementById("option-response");
 
-        if (isNaN(strikePrice)) {
-            resp.textContent = "Please enter a valid numeric Strike Price.";
-            resp.style.color = "red";
-            return;
-        }
-        
-        const symbol = "NIFTY" + strikePrice + (optionType === 'CALL' ? "CE" : "PE");
-        selectedOptionParams = {
-            variety: "NORMAL",
-            tradingsymbol: symbol,
-            symboltoken: "9999999", // placeholder, you'd get actual token from your broker
-            transactiontype: "BUY",
-            exchange: "NFO",        // typically options are in NFO
-            ordertype: "MARKET",
-            producttype: "INTRADAY",
-            duration: "DAY",
-            price: "0",            
-            squareoff: "0",
-            stoploss: "0",
-            quantity: "75"         
-        };
-        resp.textContent = `Selected Option: ${symbol}, stored internally.`;
-        resp.style.color = "#FFD700";
-
-        // If in AUTO mode, place the order automatically
-        if (document.getElementById("trade-mode").value === "AUTO") {
-            autoPlaceSelectedOption();
-        }
-    }
-
-    // 6. AUTO / MANUAL TRADE MODE
-    function setTradeMode() {
-        const mode = document.getElementById("trade-mode").value;
-        const resp = document.getElementById("trade-mode-response");
-        
-        resp.textContent = `Trade mode set to ${mode}`;
-        resp.style.color = "#FFD700";
-        
-        // If mode is AUTO and an option is already selected, place immediately
-        if (mode === "AUTO" && selectedOptionParams) {
-            autoPlaceSelectedOption();
-        }
-    }
-
-    function autoPlaceSelectedOption() {
-        const resp = document.getElementById("option-response");
-        if (!selectedOptionParams) {
-            resp.textContent = "No option data selected! Please choose Call/Put first.";
-            resp.style.color = "red";
-            return;
-        }
-
-        fetch('/api/place_order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderParams: selectedOptionParams, authToken, refreshToken })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                resp.textContent = "AUTO mode: Order placed! ID: " + data.orderid;
-                resp.style.color = "#00ff00";
-            } else {
-                resp.textContent = "AUTO order failed!\n" + JSON.stringify(data);
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            resp.textContent = "Error (AUTO): " + err;
-            resp.style.color = "red";
-        });
-    }
+  
 
     // 7. FETCH PROFILE
     function fetchProfile() {
