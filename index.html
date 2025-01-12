@@ -149,11 +149,55 @@ footer {
 .form-label {
     color: #008000;
 }
-
+.container {
+            margin-top: 50px;
+        }
+        .response-box {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .response-box.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .response-box.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .condition-box {
+            border: 1px solid #dee2e6;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .container {
+            margin-top: 50px;
+        }
+        #conditions-text {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            display: none;
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            color: #333;
+        }
 /* Card Title */
 .card-title {
     text-shadow: 1px 1px 2px rgba(255, 215, 0, 0.6);
 }
+.live-chart {
+            height: 500px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
 
 /* Steps Navigation Buttons */
 .btn-nav {
@@ -222,7 +266,6 @@ html {
     <button class="btn-nav" onclick="showSection('section3')">Create GTT</button>
     <button class="btn-nav" onclick="showSection('section4')">List GTT</button>
     <button class="btn-nav" onclick="showSection('sectionProfile')">Profile</button>
-    <button class="btn-nav" onclick="showSection('sectionChart')">Live Chart</button>
     <button class="btn-nav" onclick="showSection('sectionAutoTrade')">Auto Trade</button>
 
 </div>
@@ -447,6 +490,87 @@ html {
         </div>
     </div>
 
+    <div class="container">
+        <h1 class="text-center mb-4">Trading Dashboard</h1>
+
+        <!-- Conditions Button -->
+        <div class="text-center mb-4">
+            <button class="btn btn-info" onclick="showConditions()">Show Conditions</button>
+            <div id="conditions-text">
+                <!-- Conditions text will appear here -->
+            </div>
+        </div>
+    </div>
+
+        <div class="row">
+            <!-- Condition 1 Box -->
+            <div class="col-md-6 mb-4">
+                <div class="condition-box">
+                    <h5>Condition 1: Auto Trade</h5>
+                    <form id="condition1-form">
+                        <div class="mb-3">
+                            <label for="c1-symbol" class="form-label">Symbol</label>
+                            <input type="text" id="c1-symbol" class="form-control" placeholder="Enter trading symbol (e.g., NIFTY50)" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="c1-quantity" class="form-label">Quantity</label>
+                            <input type="number" id="c1-quantity" class="form-control" placeholder="Enter quantity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="c1-basis" class="form-label">Threshold Basis</label>
+                            <select id="c1-basis" class="form-select">
+                                <option value="fixed">Fixed Price</option>
+                                <option value="points">Points</option>
+                                <option value="percentage">Percentage</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="c1-threshold" class="form-label">Threshold Value</label>
+                            <input type="number" id="c1-threshold" class="form-control" placeholder="Enter threshold value" required>
+                        </div>
+                        <button type="button" class="btn btn-success w-100" onclick="startCondition1()">Start Condition 1</button>
+                    </form>
+                    <div id="condition1-response" class="response-box"></div>
+                </div>
+            </div>
+
+            <!-- Condition 2 Box -->
+            <div class="col-md-6 mb-4">
+                <div class="condition-box">
+                    <h5>Condition 2: Auto Trade</h5>
+                    <form id="condition2-form">
+                        <div class="mb-3">
+                            <label for="c2-symbol" class="form-label">Symbol</label>
+                            <input type="text" id="c2-symbol" class="form-control" placeholder="Enter trading symbol (e.g., NIFTY50)" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="c2-quantity" class="form-label">Quantity</label>
+                            <input type="number" id="c2-quantity" class="form-control" placeholder="Enter quantity" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="c2-basis" class="form-label">Threshold Basis</label>
+                            <select id="c2-basis" class="form-select">
+                                <option value="fixed">Fixed Price</option>
+                                <option value="points">Points</option>
+                                <option value="percentage">Percentage</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="c2-threshold" class="form-label">Threshold Value</label>
+                            <input type="number" id="c2-threshold" class="form-control" placeholder="Enter threshold value" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="c2-reference" class="form-label">Reference Price</label>
+                            <input type="number" id="c2-reference" class="form-control" placeholder="Enter reference price" required>
+                        </div>
+                        <button type="button" class="btn btn-primary w-100" onclick="startCondition2()">Start Condition 2</button>
+                    </form>
+                    <div id="condition2-response" class="response-box"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
     <!-- 13. LIVE CHART -->
@@ -464,41 +588,6 @@ html {
 
 </div>
 
-<!-- 14. Auto Trade -->
-<div class="row mb-4" id="sectionAutoTrade" style="display:none;">
-    <div class="col-lg-12">
-        <div class="card custom-card">
-            <div class="card-body">
-                <h5 class="card-title">14. Auto Trade</h5>
-                <p>Configure auto-trading parameters and start or stop trading.</p>
-                <form id="auto-trade-form">
-                    <div class="mb-3">
-                        <label for="auto-symbol" class="form-label">Symbol</label>
-                        <input type="text" id="auto-symbol" class="form-control" placeholder="Enter Symbol (e.g., NIFTY50)">
-                    </div>
-                    <div class="mb-3">
-                        <label for="auto-initial-price" class="form-label">Initial Price</label>
-                        <input type="number" id="auto-initial-price" class="form-control" placeholder="Enter Initial Price">
-                    </div>
-                    <div class="mb-3">
-                        <label for="auto-quantity" class="form-label">Quantity</label>
-                        <input type="number" id="auto-quantity" class="form-control" value="1">
-                    </div>
-                    <div class="mb-3">
-                        <label for="auto-mode" class="form-label">Trade Mode</label>
-                        <select id="auto-mode" class="form-select">
-                            <option value="AUTO">Auto</option>
-                            <option value="MANUAL">Manual</option>
-                        </select>
-                    </div>
-                    <button type="button" class="btn btn-success" onclick="startAutoTrade()">Start Auto Trade</button>
-                    <button type="button" class="btn btn-danger" onclick="stopAutoTrade()">Stop Auto Trade</button>
-                </form>
-                <div id="auto-trade-response" class="response-box mt-3"></div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- FOOTER -->
 <footer>
@@ -609,21 +698,17 @@ html {
 
     function startAutoTrade() {
     const symbol = document.getElementById("auto-symbol").value;
-    const initialPrice = parseFloat(document.getElementById("auto-initial-price").value);
     const quantity = parseInt(document.getElementById("auto-quantity").value);
     const mode = document.getElementById("auto-mode").value;
+    const condition = document.getElementById("auto-condition").value;
+    const basis = document.getElementById("auto-basis").value;
+    const threshold_value = parseFloat(document.getElementById("auto-threshold-value").value);
+    const reference_price = parseFloat(document.getElementById("auto-reference-price").value || 0);
 
-    if (!symbol || isNaN(initialPrice) || isNaN(quantity)) {
-        const resp = document.getElementById("auto-trade-response");
-        resp.textContent = "Please fill in all fields with valid data.";
-        resp.style.color = "red";
-        return;
-    }
-
-    fetch('/api/start_auto_trade', {
+    fetch('/api/auto_trade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol, initial_price: initialPrice, quantity, mode })
+        body: JSON.stringify({ symbol, quantity, mode, condition, basis, threshold_value, reference_price })
     })
     .then(res => res.json())
     .then(data => {
@@ -632,13 +717,14 @@ html {
             resp.textContent = data.message;
             resp.style.color = "green";
         } else {
-            resp.textContent = "Error: " + data.message;
+            resp.textContent = `Error: ${data.message}`;
             resp.style.color = "red";
         }
     })
-    .catch(err => console.error("Failed to start auto-trade:", err));
+    .catch(err => {
+        console.error("Error starting auto trade:", err);
+    });
 }
-
 function stopAutoTrade() {
     fetch('/api/stop_auto_trade', { method: 'POST' })
     .then(res => res.json())
@@ -647,8 +733,37 @@ function stopAutoTrade() {
         resp.textContent = data.message;
         resp.style.color = "blue";
     })
-    .catch(err => console.error("Failed to stop auto-trade:", err));
+    .catch(err => {
+        console.error("Error stopping auto trade:", err);
+    });
 }
+
+function showConditions() {
+            const conditionsText = `
+                1. Condition 1: Auto-trade when the market price matches or exceeds a specified threshold based on fixed price, points, or percentage.
+                2. Condition 2: Auto-trade when the live market price is greater than a reference price plus a specified threshold based on points or percentage.
+                3. Both conditions allow users to specify symbols, quantities, and basis types for trading.
+            `;
+            const textElement = document.getElementById("conditions-text");
+            textElement.innerText = conditionsText;
+            textElement.style.display = "block";
+        }
+
+    // Prepare the request payload
+    const requestData = {
+        tradeOption,
+        symbol,
+        targetPrice,
+        quantity,
+        transactionType,
+        conditions: {
+            price: conditionPrice,
+            time: conditionTime,
+            percentage: conditionPercentage
+        }
+    };
+
+
 
     // 3. CREATE GTT RULE
     function createGttRule() {

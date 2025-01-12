@@ -23,7 +23,8 @@ pwd = '0852'
 smartApi = SmartConnect(api_key=api_key)
 
 app = Flask(__name__)
-
+# Global flag to manage auto-trading
+stop_auto_trade_flag = [False]  # Using a mutable list for shared access
 # -------------------------------------------------------------------------
 # HELPER FUNCTIONS
 # -------------------------------------------------------------------------
@@ -149,6 +150,14 @@ def api_place_order():
         return jsonify({"success": True, "orderid": order_id})
     else:
         return jsonify({"success": False, "error": "Order placement failed."})
+    
+def fetch_live_price(symbol):
+    try:
+        ltp_data = smartApi.ltpData("NSE", symbol)
+        return float(ltp_data['data']['ltp'])
+    except Exception as e:
+        logger.error(f"Error fetching live price for {symbol}: {e}")
+        return None
 
 from threading import Thread
 import time
@@ -288,9 +297,86 @@ def api_get_profile():
         return jsonify({"success": False, "error": str(e)})
 
 
+@app.route('/api/manual_trade', methods=['POST'])
+def manual_trade():
+    data = request.get_json()
+    symbol = data.get('symbol')
+    target_price = float(data.get('target_price'))
+    quantity = int(data.get('quantity'))
+    transaction_type = data.get('transaction_type')
+    try:
+        order_id = place_order({
+            "tradingsymbol": symbol,
+            "price": target_price,
+            "quantity": quantity,
+            "transactiontype": transaction_type,
+            "exchange": "NFO",
+            "producttype": "INTRADAY",
+            "ordertype": "LIMIT"
+        })
+        if order_id:
+            return jsonify({"success": True, "message": f"Order placed successfully. ID: {order_id}"})
+        else:
+            return jsonify({"success": False, "message": "Order placement failed."})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error: {str(e)}"})
+
+@app.route('/api/auto_trade', methods=['POST'])
+def auto_trade():
+    data = request.get_json()
+    symbol = data.get('symbol')
+    quantity = int(data.get('quantity'))
+    condition = data.get('condition')
+    basis = data.get('basis')
+    threshold_value = float(data.get('threshold_value'))
+    reference_price = float(data.get('reference_price', 0))
+
+    stop_auto_trade_flag[0] = False
+
+    def monitor_and_trade():
+        try:
+            while not stop_auto_trade_flag[0]:
+                live_price = fetch_live_price(symbol)
+                if live_price is None:
+                    time.sleep(5)
+                    continue
+
+                if condition == "Condition 1":
+                    if basis == "fixed" and live_price >= threshold_value:
+                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                        break
+                    elif basis == "points" and live_price >= live_price + threshold_value:
+                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                        break
+                    elif basis == "percentage" and live_price >= live_price * (1 + threshold_value / 100):
+                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                        break
+                elif condition == "Condition 2":
+                    if basis == "fixed" and live_price > threshold_value:
+                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                        break
+                    elif basis == "points" and live_price > reference_price + threshold_value:
+                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                        break
+                    elif basis == "percentage" and live_price > reference_price * (1 + threshold_value / 100):
+                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                        break
+
+                time.sleep(5)
+        except Exception as e:
+            logger.error(f"Error in auto-trading: {e}")
+
+    Thread(target=monitor_and_trade).start()
+    return jsonify({"success": True, "message": "Auto trading started successfully."})
+
+@app.route('/api/stop_auto_trade', methods=['POST'])
+def stop_auto_trade():
+    stop_auto_trade_flag[0] = True
+    return jsonify({"success": True, "message": "Auto trading stopped successfully."})
+
 # -------------------------------------------------------------------------
 # RUN FLASK (Development Only)
 # -------------------------------------------------------------------------
 if __name__ == "__main__":
-    # In production, use a production-ready WSGI server like gunicorn.
     app.run(debug=True)
+
