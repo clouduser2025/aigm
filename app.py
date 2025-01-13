@@ -162,760 +162,10 @@ def fetch_live_price(symbol):
 @app.route('/', methods=['GET'])
 def index():
     """
-    Serves a combined HTML/JS from below for demonstration.
-    You can split into templates if you prefer.
+    Serves the main HTML page for the web application.
     """
-    return """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Angel One Trading Dashboard (Trailing Stop-Loss Demo)</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    <style>
-        body {
-            background: radial-gradient(circle, #ffffff 30%, #f9f9f9 100%);
-            margin: 0; padding: 0;
-        }
-        .navbar {
-            background: linear-gradient(to bottom, #ffffff, #f0f0f0);
-            padding: 20px 30px;
-            box-shadow: 0 4px 10px rgba(255, 253, 255, 0.4);
-            border-bottom: 2px solid #007bff;
-        }
-        .navbar-brand {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #007bff;
-        }
-        .container-buttons button {
-            margin: 5px;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #fff;
-            background: linear-gradient(90deg, #228B22, #FF0000);
-            animation: gradient-flow 4s infinite, button-glow 2s infinite alternate;
-            background-size: 200% 200%;
-        }
-        @keyframes gradient-flow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        @keyframes button-glow {
-            0% { box-shadow: 0 0 10px rgba(34, 139, 34, 0.7); }
-            100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
-        }
-        .response-box {
-            display: none;
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        #chart-container {
-            width: 100%; height: 700px;
-            border: 1px solid #008000;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-            background-color: #ffffff;
-            margin-top: 20px;
-        }
-        footer {
-            background: #fff;
-            color: #000;
-            padding: 20px;
-            text-align: center;
-            border-top: 2px solid #FF2C2C;
-        }
-    </style>
-</head>
-<body>
-<nav class="navbar">
-    <span class="navbar-brand">Angel One Trading Dashboard</span>
-</nav>
+    return render_template('index.html')
 
-<div class="container mt-3">
-    <div class="container-buttons d-flex flex-wrap">
-        <button onclick="showSection('loginSection')">Login</button>
-        <button onclick="showSection('manualTradeSection')">Manual Trade</button>
-        <button onclick="showSection('placeOrderSection')">Place Order (Demo)</button>
-        <button onclick="showSection('gttSection')">Create GTT</button>
-        <button onclick="showSection('listGttSection')">List GTT</button>
-        <button onclick="showSection('profileSection')">Profile</button>
-        <button onclick="showSection('autoTradeSection')">Auto Trade (Buy)</button>
-        <button onclick="showSection('autoStopLossSection')">Auto Stop-Loss Sell</button>
-    </div>
-</div>
-
-<div class="container-fluid">
-    <div class="row">
-        <!-- LEFT SIDE SECTIONS -->
-        <div class="col-md-6">
-
-            <!-- LOGIN -->
-            <div id="loginSection" style="display:none; padding: 10px;">
-                <h4>Login</h4>
-                <div class="mb-3">
-                    <label>Username:</label>
-                    <input type="text" id="username" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label>Password:</label>
-                    <input type="password" id="password" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label>TOTP Secret:</label>
-                    <input type="text" id="totp" class="form-control">
-                </div>
-                <button class="btn btn-primary" onclick="login()">Login</button>
-                <div id="login-response" class="response-box"></div>
-            </div>
-
-            <!-- MANUAL TRADE -->
-            <div id="manualTradeSection" style="display:none; padding: 10px;">
-                <h4>Manual Trade</h4>
-                <div class="mb-3">
-                    <label>Symbol:</label>
-                    <input type="text" id="manual-symbol" class="form-control" placeholder="e.g. SBIN">
-                </div>
-                <div class="mb-3">
-                    <label>Quantity:</label>
-                    <input type="number" id="manual-quantity" class="form-control" value="1">
-                </div>
-                <div class="mb-3">
-                    <label>Transaction Type:</label>
-                    <select id="manual-transaction" class="form-select">
-                        <option value="BUY">Buy</option>
-                        <option value="SELL">Sell</option>
-                    </select>
-                </div>
-                <button class="btn btn-success" onclick="performManualTrade()">Execute Manual Trade</button>
-                <div id="manual-trade-response" class="response-box"></div>
-            </div>
-
-            <!-- PLACE ORDER DEMO -->
-            <div id="placeOrderSection" style="display:none; padding: 10px;">
-                <h4>Place Order (Demo)</h4>
-                <div class="mb-2">
-                    <label>Variety:</label>
-                    <select id="order-variety" class="form-select">
-                        <option value="NORMAL">NORMAL</option>
-                        <option value="STOPLOSS">STOPLOSS</option>
-                        <option value="AMO">AMO</option>
-                        <option value="ROBO">ROBO</option>
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label>Trading Symbol:</label>
-                    <input type="text" id="order-tradingsymbol" class="form-control" value="SBIN-EQ">
-                </div>
-                <div class="mb-2">
-                    <label>Symbol Token:</label>
-                    <input type="text" id="order-symboltoken" class="form-control" value="3045">
-                </div>
-                <div class="mb-2">
-                    <label>Transaction Type:</label>
-                    <select id="order-transactiontype" class="form-select">
-                        <option value="BUY">BUY</option>
-                        <option value="SELL">SELL</option>
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label>Exchange:</label>
-                    <select id="order-exchange" class="form-select">
-                        <option value="NSE">NSE</option>
-                        <option value="BSE">BSE</option>
-                        <option value="NFO">NFO</option>
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label>Order Type:</label>
-                    <select id="order-ordertype" class="form-select">
-                        <option value="MARKET">MARKET</option>
-                        <option value="LIMIT">LIMIT</option>
-                        <option value="STOPLOSS_LIMIT">STOPLOSS_LIMIT</option>
-                        <option value="STOPLOSS_MARKET">STOPLOSS_MARKET</option>
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label>Product Type:</label>
-                    <select id="order-producttype" class="form-select">
-                        <option value="DELIVERY">DELIVERY</option>
-                        <option value="CARRYFORWARD">CARRYFORWARD</option>
-                        <option value="MARGIN">MARGIN</option>
-                        <option value="INTRADAY">INTRADAY</option>
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label>Duration:</label>
-                    <select id="order-duration" class="form-select">
-                        <option value="DAY">DAY</option>
-                        <option value="IOC">IOC</option>
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label>Price:</label>
-                    <input type="text" id="order-price" class="form-control" value="19500">
-                </div>
-                <div class="mb-2">
-                    <label>Quantity:</label>
-                    <input type="text" id="order-quantity" class="form-control" value="1">
-                </div>
-                <button class="btn btn-success" onclick="placeOrder()">Place Order</button>
-                <div id="order-response" class="response-box"></div>
-            </div>
-
-            <!-- CREATE GTT -->
-            <div id="gttSection" style="display:none; padding: 10px;">
-                <h4>Create GTT Rule</h4>
-                <div class="mb-2">
-                    <label>Trading Symbol:</label>
-                    <input type="text" id="gtt-tradingsymbol" class="form-control" value="SBIN-EQ">
-                </div>
-                <div class="mb-2">
-                    <label>Symbol Token:</label>
-                    <input type="text" id="gtt-symboltoken" class="form-control" value="3045">
-                </div>
-                <div class="mb-2">
-                    <label>Exchange:</label>
-                    <input type="text" id="gtt-exchange" class="form-control" value="NSE">
-                </div>
-                <div class="mb-2">
-                    <label>Product Type:</label>
-                    <input type="text" id="gtt-producttype" class="form-control" value="MARGIN">
-                </div>
-                <div class="mb-2">
-                    <label>Transaction Type:</label>
-                    <input type="text" id="gtt-transactiontype" class="form-control" value="BUY">
-                </div>
-                <div class="mb-2">
-                    <label>Price:</label>
-                    <input type="number" id="gtt-price" class="form-control" value="100000">
-                </div>
-                <div class="mb-2">
-                    <label>Qty:</label>
-                    <input type="number" id="gtt-qty" class="form-control" value="10">
-                </div>
-                <div class="mb-2">
-                    <label>Disclosed Qty:</label>
-                    <input type="number" id="gtt-disclosedqty" class="form-control" value="10">
-                </div>
-                <div class="mb-2">
-                    <label>Trigger Price:</label>
-                    <input type="number" id="gtt-triggerprice" class="form-control" value="200000">
-                </div>
-                <div class="mb-2">
-                    <label>Time Period:</label>
-                    <input type="number" id="gtt-timeperiod" class="form-control" value="365">
-                </div>
-                <button class="btn btn-warning" onclick="createGttRule()">Create GTT</button>
-                <div id="gtt-create-response" class="response-box"></div>
-            </div>
-
-            <!-- LIST GTT -->
-            <div id="listGttSection" style="display:none; padding: 10px;">
-                <h4>List GTT Rules</h4>
-                <button class="btn btn-info" onclick="listGttRules()">List GTT</button>
-                <div id="gtt-list-response" class="response-box"></div>
-            </div>
-
-            <!-- PROFILE -->
-            <div id="profileSection" style="display:none; padding: 10px;">
-                <h4>Profile</h4>
-                <button class="btn btn-info" onclick="fetchProfile()">Fetch Profile</button>
-                <div id="profile-response" class="response-box" style="overflow-x:auto;"></div>
-            </div>
-
-            <!-- AUTO TRADE (BUY) -->
-            <div id="autoTradeSection" style="display:none; padding: 10px;">
-                <h4>Auto Trade (Buy Condition)</h4>
-                <p>Example logic: auto trade once price crosses a threshold. Simplified here.</p>
-                <div class="mb-2">
-                    <label>Symbol:</label>
-                    <input type="text" id="auto-symbol" class="form-control" placeholder="e.g. SBIN">
-                </div>
-                <div class="mb-2">
-                    <label>Quantity:</label>
-                    <input type="number" id="auto-quantity" class="form-control" value="1">
-                </div>
-                <div class="mb-2">
-                    <label>Condition:</label>
-                    <select id="auto-condition" class="form-select">
-                        <option value="Condition 1">Condition 1</option>
-                        <option value="Condition 2">Condition 2</option>
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label>Basis:</label>
-                    <select id="auto-basis" class="form-select">
-                        <option value="fixed">Fixed Price</option>
-                        <option value="points">Points</option>
-                        <option value="percentage">Percentage</option>
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label>Threshold Value:</label>
-                    <input type="number" id="auto-threshold" class="form-control" value="100">
-                </div>
-                <div class="mb-2">
-                    <label>Reference Price (optional):</label>
-                    <input type="number" id="auto-reference" class="form-control" value="0">
-                </div>
-                <button class="btn btn-success" onclick="startAutoTrade()">Start Auto Trade</button>
-                <button class="btn btn-danger" onclick="stopAutoTrade()">Stop Auto Trade</button>
-                <div id="auto-trade-response" class="response-box"></div>
-            </div>
-
-            <!-- AUTO STOP-LOSS SELL (Trailing) -->
-            <div id="autoStopLossSection" style="display:none; padding:10px;">
-                <h4>Auto Stop-Loss Sell (Trailing)</h4>
-                <p>
-                  Two scenarios:
-                  <br>1) Price never rises => Sell if price hits buyPrice*0.95
-                  <br>2) Price rises => Trailing stop: track highest, sell if price hits highest*0.95
-                </p>
-                <div class="mb-2">
-                    <label>Symbol (already bought):</label>
-                    <input type="text" id="stoploss-symbol" class="form-control" placeholder="e.g. SBIN">
-                </div>
-                <div class="mb-2">
-                    <label>Buy Price:</label>
-                    <input type="number" id="stoploss-buyprice" class="form-control" placeholder="The price at which you bought">
-                </div>
-                <div class="mb-2">
-                    <label>Quantity:</label>
-                    <input type="number" id="stoploss-quantity" class="form-control" value="1">
-                </div>
-                <div class="mb-2">
-                    <label>Scenario:</label>
-                    <select id="stoploss-scenario" class="form-select">
-                        <option value="1">Scenario 1 (No Price Rise)</option>
-                        <option value="2">Scenario 2 (Trailing if Price Rises)</option>
-                    </select>
-                </div>
-                <button class="btn btn-warning" onclick="startTrailingStop()">Start Auto Stop-Loss Sell</button>
-                <button class="btn btn-danger" onclick="stopTrailingStop()">Stop Auto Stop-Loss Sell</button>
-                <div id="stoploss-response" class="response-box"></div>
-            </div>
-
-        </div>
-        <!-- RIGHT SIDE CHART -->
-        <div class="col-md-6">
-            <div id="chart-container"></div>
-        </div>
-    </div>
-</div>
-
-<footer>
-    <p>Angel One Trading Dashboard &mdash; Trailing Stop-Loss Demo</p>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // ========== GLOBALS ==========
-    let g_authToken = null;
-    let g_refreshToken = null;
-    let chartWidget = null;
-
-    // ========== SECTION NAVIGATION ==========
-    function showSection(sectionId) {
-        const allSections = [
-            'loginSection','manualTradeSection','placeOrderSection',
-            'gttSection','listGttSection','profileSection',
-            'autoTradeSection','autoStopLossSection'
-        ];
-        allSections.forEach(s => document.getElementById(s).style.display = 'none');
-        document.getElementById(sectionId).style.display = 'block';
-        document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
-    }
-
-    // ========== LOGIN ==========
-    function login() {
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-        const totp = document.getElementById("totp").value;
-
-        fetch('/api/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ username, password, totp })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("login-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = "Login successful!";
-                resp.style.color = "green";
-                g_authToken = data.authToken;
-                g_refreshToken = data.refreshToken;
-            } else {
-                resp.textContent = data.message || "Login failed!";
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("login-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
-            resp.style.color = "red";
-        });
-    }
-
-    // ========== MANUAL TRADE ==========
-    function performManualTrade() {
-        const symbol = document.getElementById("manual-symbol").value.trim();
-        const quantity = +document.getElementById("manual-quantity").value;
-        const transaction_type = document.getElementById("manual-transaction").value;
-
-        // Update chart
-        if (symbol) {
-            updateLiveChart(symbol);
-        }
-
-        fetch('/api/manual_trade', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                symbol,
-                target_price: 0,  // or user input if needed
-                quantity,
-                transaction_type,
-                authToken: g_authToken,
-                refreshToken: g_refreshToken
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("manual-trade-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = data.message || "Manual trade placed successfully!";
-                resp.style.color = "green";
-            } else {
-                resp.textContent = data.message || "Manual trade failed.";
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("manual-trade-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
-            resp.style.color = "red";
-        });
-    }
-
-    // ========== PLACE ORDER DEMO ==========
-    function placeOrder() {
-        const orderParams = {
-            variety: document.getElementById("order-variety").value,
-            tradingsymbol: document.getElementById("order-tradingsymbol").value,
-            symboltoken: document.getElementById("order-symboltoken").value,
-            transactiontype: document.getElementById("order-transactiontype").value,
-            exchange: document.getElementById("order-exchange").value,
-            ordertype: document.getElementById("order-ordertype").value,
-            producttype: document.getElementById("order-producttype").value,
-            duration: document.getElementById("order-duration").value,
-            price: document.getElementById("order-price").value,
-            squareoff: "0",
-            stoploss: "0",
-            quantity: document.getElementById("order-quantity").value
-        };
-
-        // Update chart if the symbol changes
-        if (orderParams.tradingsymbol) {
-            updateLiveChart(orderParams.tradingsymbol);
-        }
-
-        fetch('/api/place_order', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ orderParams })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("order-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = "Order placed: " + data.orderid;
-                resp.style.color = "green";
-            } else {
-                resp.textContent = "Order failed: " + JSON.stringify(data);
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("order-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
-            resp.style.color = "red";
-        });
-    }
-
-    // ========== CREATE GTT ==========
-    function createGttRule() {
-        const gttParams = {
-            tradingsymbol: document.getElementById("gtt-tradingsymbol").value,
-            symboltoken: document.getElementById("gtt-symboltoken").value,
-            exchange: document.getElementById("gtt-exchange").value,
-            producttype: document.getElementById("gtt-producttype").value,
-            transactiontype: document.getElementById("gtt-transactiontype").value,
-            price: parseFloat(document.getElementById("gtt-price").value),
-            qty: parseInt(document.getElementById("gtt-qty").value),
-            disclosedqty: parseInt(document.getElementById("gtt-disclosedqty").value),
-            triggerprice: parseFloat(document.getElementById("gtt-triggerprice").value),
-            timeperiod: parseInt(document.getElementById("gtt-timeperiod").value)
-        };
-
-        fetch('/api/create_gtt_rule', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ gttParams })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("gtt-create-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = "GTT created: " + data.rule_id;
-                resp.style.color = "green";
-            } else {
-                resp.textContent = "Failed: " + JSON.stringify(data);
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("gtt-create-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
-            resp.style.color = "red";
-        });
-    }
-
-    // ========== LIST GTT ==========
-    function listGttRules() {
-        fetch('/api/list_gtt_rules', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({})
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("gtt-list-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = "GTT list:\n" + JSON.stringify(data.gtt_list, null, 2);
-                resp.style.color = "green";
-            } else {
-                resp.textContent = "List GTT failed: " + JSON.stringify(data);
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("gtt-list-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
-            resp.style.color = "red";
-        });
-    }
-
-    // ========== PROFILE ==========
-    function fetchProfile() {
-        if (!g_refreshToken) {
-            alert("You must log in first!");
-            return;
-        }
-        fetch('/api/get_profile', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ refreshToken: g_refreshToken })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("profile-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.innerHTML = JSON.stringify(data.profile, null, 2);
-                resp.style.color = "green";
-            } else {
-                resp.textContent = "Profile fetch failed: " + data.error;
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("profile-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
-            resp.style.color = "red";
-        });
-    }
-
-    // ========== AUTO TRADE (BUY) ==========
-    function startAutoTrade() {
-        const symbol = document.getElementById("auto-symbol").value.trim();
-        const quantity = +document.getElementById("auto-quantity").value;
-        const condition = document.getElementById("auto-condition").value;
-        const basis = document.getElementById("auto-basis").value;
-        const threshold_value = +document.getElementById("auto-threshold").value;
-        const reference_price = +document.getElementById("auto-reference").value;
-
-        if (symbol) {
-            updateLiveChart(symbol);
-        }
-
-        fetch('/api/auto_trade', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                symbol, quantity, condition, basis,
-                threshold_value, reference_price
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("auto-trade-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = data.message;
-                resp.style.color = "green";
-            } else {
-                resp.textContent = data.message || "Auto trade failed.";
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("auto-trade-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
-            resp.style.color = "red";
-        });
-    }
-
-    function stopAutoTrade() {
-        fetch('/api/stop_auto_trade', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({})
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("auto-trade-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = data.message;
-                resp.style.color = "green";
-            } else {
-                resp.textContent = data.message || "Stop failed.";
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("auto-trade-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
-            resp.style.color = "red";
-        });
-    }
-
-    // ========== AUTO STOP-LOSS SELL (TRAILING) ==========
-    function startTrailingStop() {
-        const symbol = document.getElementById("stoploss-symbol").value.trim();
-        const buy_price = parseFloat(document.getElementById("stoploss-buyprice").value);
-        const quantity = parseInt(document.getElementById("stoploss-quantity").value);
-        const scenario = document.getElementById("stoploss-scenario").value; // "1" or "2"
-
-        if (!symbol || !buy_price || !quantity) {
-            alert("Please fill symbol, buy price, and quantity.");
-            return;
-        }
-        updateLiveChart(symbol);
-
-        fetch('/api/auto_stoploss_sell', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                symbol, buy_price, quantity, scenario
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("stoploss-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = data.message;
-                resp.style.color = "green";
-            } else {
-                resp.textContent = data.error || "Failed to start trailing stop-loss.";
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("stoploss-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
-            resp.style.color = "red";
-        });
-    }
-
-    function stopTrailingStop() {
-        fetch('/api/stop_auto_stoploss_sell', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({})
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("stoploss-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = data.message;
-                resp.style.color = "green";
-            } else {
-                resp.textContent = data.error || "Failed to stop trailing stop.";
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("stoploss-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
-            resp.style.color = "red";
-        });
-    }
-
-    // ========== TRADINGVIEW CHART ==========
-    function updateLiveChart(symbolInput) {
-        let symbol = symbolInput.toUpperCase().includes(':') ? symbolInput : "NSE:" + symbolInput.toUpperCase();
-        if (chartWidget) {
-            chartWidget.remove();
-        }
-        chartWidget = new TradingView.widget({
-            symbol: symbol,
-            interval: "5",
-            timezone: "Asia/Kolkata",
-            theme: "dark",
-            style: "1",
-            locale: "en",
-            toolbar_bg: "#f1f3f6",
-            container_id: "chart-container",
-            width: "100%",
-            height: 700
-        });
-    }
-
-    // Load a default chart
-    window.addEventListener('DOMContentLoaded', () => {
-        updateLiveChart("NIFTY");
-    });
-</script>
-
-</body>
-</html>
-    """
 
 # 1. LOGIN
 @app.route('/api/login', methods=['POST'])
@@ -1082,31 +332,41 @@ def stop_auto_trade():
     stop_auto_trade_flag[0] = True
     return jsonify({"success": True, "message": "Auto trading stopped successfully."})
 
-# 8. AUTO STOP-LOSS SELL (Trailing)
 @app.route('/api/auto_stoploss_sell', methods=['POST'])
 def auto_stoploss_sell():
     """
-    Scenario 1: Price never goes above buy_price => stop-loss = buy_price * 0.95.
-    If price dips <= that, sell.
+    Enhanced Stop-Loss Mechanism:
+    - Option 1: 5% less of the buy price or highest price observed (default).
+    - Option 2: 5 points less of the buy price or highest price observed.
+    - Option 3: User-specified fixed stop-loss value.
 
-    Scenario 2: Price moves above buy_price => track highest price seen.
-    stop-loss = highest_price * 0.95.
-    If price dips <= that, sell.
+    The stop-loss adjusts dynamically in Scenario 2 (trailing).
     """
     data = request.get_json()
     symbol = data.get('symbol')
     buy_price = float(data.get('buy_price'))
     quantity = int(data.get('quantity'))
     scenario = data.get('scenario')
+    stop_loss_type = data.get('stop_loss_type', 'percentage')  # 'percentage', 'points', or 'fixed'
+    fixed_stop_loss = data.get('fixed_stop_loss', None)  # Only required for 'fixed'
 
-    # reset the global stop-flag
+    # Reset the global stop-flag
     stop_trailing_stop_flag[0] = False
 
     def monitor_and_sell():
         try:
-            highest_price = buy_price  # track the highest if scenario=2
-            # initial stop loss is buy_price * 0.95
-            stop_loss = buy_price * 0.95
+            highest_price = buy_price  # Track the highest if scenario=2
+            stop_loss = None  # Initialize stop-loss
+
+            # Determine initial stop-loss based on the type
+            if stop_loss_type == 'percentage':
+                stop_loss = buy_price * 0.95  # 5% less
+            elif stop_loss_type == 'points':
+                stop_loss = buy_price - 5  # 5 points less
+            elif stop_loss_type == 'fixed' and fixed_stop_loss is not None:
+                stop_loss = fixed_stop_loss
+            else:
+                raise ValueError("Invalid stop_loss_type or missing fixed_stop_loss value")
 
             while not stop_trailing_stop_flag[0]:
                 live_price = fetch_live_price(symbol)
@@ -1114,8 +374,7 @@ def auto_stoploss_sell():
                     time.sleep(5)
                     continue
 
-                # SCENARIO 1 => If price does not rise above buy
-                # stop_loss remains at buy_price * 0.95
+                # SCENARIO 1: Price does not rise above buy price
                 if scenario == "1":
                     if live_price <= stop_loss:
                         # SELL
@@ -1130,11 +389,18 @@ def auto_stoploss_sell():
                         })
                         break
 
-                # SCENARIO 2 => If price rises, we keep track of the new highest and update stop_loss
+                # SCENARIO 2: Price rises, adjust stop-loss dynamically
                 elif scenario == "2":
                     if live_price > highest_price:
                         highest_price = live_price
-                        stop_loss = highest_price * 0.95
+                        # Recalculate stop-loss based on type
+                        if stop_loss_type == 'percentage':
+                            stop_loss = highest_price * 0.95
+                        elif stop_loss_type == 'points':
+                            stop_loss = highest_price - 5
+                        elif stop_loss_type == 'fixed':
+                            pass  # Fixed stop-loss remains constant
+
                     if live_price <= stop_loss:
                         # SELL
                         place_order({
@@ -1154,6 +420,7 @@ def auto_stoploss_sell():
 
     Thread(target=monitor_and_sell).start()
     return jsonify({"success": True, "message": "Trailing stop-loss monitoring started."})
+
 
 @app.route('/api/stop_auto_stoploss_sell', methods=['POST'])
 def stop_auto_stoploss_sell():

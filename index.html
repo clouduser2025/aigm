@@ -108,8 +108,7 @@
       <button onclick="showSection('gttSection')">Create GTT</button>
       <button onclick="showSection('listGttSection')">List GTT</button>
       <button onclick="showSection('profileSection')">Profile</button>
-      <button onclick="showSection('autoTradeSection')">Auto Trade (Buy)</button>
-      <button onclick="showSection('autoStopLossSection')">Auto Stop-Loss Sell</button>
+
     </div>
   </div>
 
@@ -292,155 +291,7 @@
           <div id="profile-response" class="response-box" style="overflow-x:auto;"></div>
         </div>
 
-        <!-- AUTO TRADE (BUY) -->
-        <div id="autoTradeSection" style="display:none; padding: 10px;">
-          <h4>Auto Trade (Buy Condition)</h4>
-          <p>
-            Enable the basis you need for auto trade:
-            <br>1) Condition 1: Buy when the live price meets or exceeds a threshold.
-            <br>2) Condition 2: Buy when the live price is higher than a reference price plus a threshold.
-          </p>
-          <div class="mb-2">
-            <label>Symbol:</label>
-            <input type="text" id="auto-symbol" class="form-control" placeholder="e.g. SBIN">
-          </div>
-          <div class="mb-2">
-            <label>Quantity:</label>
-            <input type="number" id="auto-quantity" class="form-control" value="1">
-          </div>
-          <div class="mb-2">
-            <label>Condition:</label>
-            <select id="auto-condition" class="form-select">
-              <option value="Condition 1">Condition 1</option>
-              <option value="Condition 2">Condition 2</option>
-            </select>
-          </div>
 
-          <!-- Toggle Switches for Basis Options -->
-          <div class="mb-2">
-            <label>Enable Basis Options:</label>
-            <div>
-              <label class="form-check-label">
-                <input type="checkbox" id="enable-fixed" class="form-check-input" onchange="toggleAutoOption('fixed')">
-                Fixed Price
-              </label>
-            </div>
-            <div>
-              <label class="form-check-label">
-                <input type="checkbox" id="enable-points" class="form-check-input" onchange="toggleAutoOption('points')">
-                Points
-              </label>
-            </div>
-            <div>
-              <label class="form-check-label">
-                <input type="checkbox" id="enable-percentage" class="form-check-input" onchange="toggleAutoOption('percentage')">
-                Percentage
-              </label>
-            </div>
-          </div>
-
-          <!-- Inputs for Each Basis Option -->
-          <div class="mb-2" id="fixed-input" style="display:none;">
-            <label>Fixed Price Threshold:</label>
-            <input type="number" id="auto-fixed-threshold" class="form-control" placeholder="Enter fixed price threshold">
-          </div>
-          <div class="mb-2" id="points-input" style="display:none;">
-            <label>Points Threshold:</label>
-            <input type="number" id="auto-points-threshold" class="form-control" placeholder="Enter points threshold">
-          </div>
-          <div class="mb-2" id="percentage-input" style="display:none;">
-            <label>Percentage Threshold:</label>
-            <input type="number" id="auto-percentage-threshold" class="form-control" placeholder="Enter percentage threshold">
-          </div>
-
-          <!-- Optional Reference Price -->
-          <div class="mb-2">
-            <label>Reference Price (optional):</label>
-            <input type="number" id="auto-reference" class="form-control" placeholder="Enter reference price (optional)">
-          </div>
-
-          <!-- Action Buttons -->
-          <button class="btn btn-success" onclick="startAutoTrade()">Start Auto Trade</button>
-          <button class="btn btn-danger" onclick="stopAutoTrade()">Stop Auto Trade</button>
-          <div id="auto-trade-response" class="response-box"></div>
-        </div>
-
-        <!-- AUTO STOP-LOSS SELL (Trailing) -->
-        <div id="autoStopLossSection" style="display:none; padding:10px;">
-          <h4>Auto Stop-Loss Sell (Trailing)</h4>
-          <p>
-            Enable the options you need for stop-loss:
-            <br>1) Percentage-based stop-loss (e.g., 5% below).
-            <br>2) Points-based stop-loss (e.g., 5 points below).
-            <br>3) Fixed stop-loss value.
-          </p>
-          <div class="mb-2">
-            <label>Symbol (already bought):</label>
-            <input type="text" id="stoploss-symbol" class="form-control" placeholder="e.g. SBIN">
-          </div>
-          <div class="mb-2">
-            <label>Buy Price:</label>
-            <input type="number" id="stoploss-buyprice" class="form-control" placeholder="The price at which you bought">
-          </div>
-          <div class="mb-2">
-            <label>Quantity:</label>
-            <input type="number" id="stoploss-quantity" class="form-control" value="1">
-          </div>
-
-          <!-- Toggle Switches for Stop-Loss Options -->
-          <div class="mb-2">
-            <label>Enable Stop-Loss Options:</label>
-            <div>
-              <label class="form-check-label">
-                <input type="checkbox" id="enable-percentage" class="form-check-input" onchange="toggleOption('percentage')">
-                Percentage (e.g., 5% below)
-              </label>
-            </div>
-            <div>
-              <label class="form-check-label">
-                <input type="checkbox" id="enable-points" class="form-check-input" onchange="toggleOption('points')">
-                Points (e.g., 5 points below)
-              </label>
-            </div>
-            <div>
-              <label class="form-check-label">
-                <input type="checkbox" id="enable-fixed" class="form-check-input" onchange="toggleOption('fixed')">
-                Fixed Value
-              </label>
-            </div>
-          </div>
-
-          <!-- Percentage Input -->
-          <div class="mb-2" id="percentage-input" style="display:none;">
-            <label>Percentage (default: 5%):</label>
-            <input type="number" id="stoploss-percentage" class="form-control" value="5">
-          </div>
-
-          <!-- Points Input -->
-          <div class="mb-2" id="points-input" style="display:none;">
-            <label>Points (default: 5 points):</label>
-            <input type="number" id="stoploss-points" class="form-control" value="5">
-          </div>
-
-          <!-- Fixed Stop-Loss Input -->
-          <div class="mb-2" id="fixed-input" style="display:none;">
-            <label>Fixed Stop-Loss Value:</label>
-            <input type="number" id="stoploss-fixed" class="form-control" placeholder="Enter fixed stop-loss value">
-          </div>
-
-          <!-- Buttons -->
-          <button class="btn btn-warning" onclick="startTrailingStop()">Start Auto Stop-Loss Sell</button>
-          <button class="btn btn-danger" onclick="stopTrailingStop()">Stop Auto Stop-Loss Sell</button>
-          <div id="stoploss-response" class="response-box"></div>
-        </div>
-      </div>
-
-      <!-- RIGHT COLUMN (col-md-9): Chart -->
-      <div class="col-md-9">
-        <div id="chart-container"></div>
-      </div>
-    </div>
-  </div>
 
   <footer>
     <p>Angel One Trading Dashboard &mdash; Trailing Stop-Loss Demo</p>
@@ -689,59 +540,7 @@
       });
     }
 
-    // ========== AUTO TRADE (BUY) ==========
-    function toggleAutoOption(option) {
-      const fixedInput = document.getElementById('fixed-input');
-      const pointsInput = document.getElementById('points-input');
-      const percentageInput = document.getElementById('percentage-input');
 
-      switch (option) {
-        case 'fixed':
-          fixedInput.style.display = document.getElementById('enable-fixed').checked ? 'block' : 'none';
-          break;
-        case 'points':
-          pointsInput.style.display = document.getElementById('enable-points').checked ? 'block' : 'none';
-          break;
-        case 'percentage':
-          percentageInput.style.display = document.getElementById('enable-percentage').checked ? 'block' : 'none';
-          break;
-      }
-    }
-
-    function startAutoTrade() {
-      alert("Starting auto trade...");
-      // real logic here
-    }
-    function stopAutoTrade() {
-      alert("Stopping auto trade...");
-    }
-
-    // ========== AUTO STOP-LOSS SELL (TRAILING) ==========
-    function toggleOption(option) {
-      const percentageInput = document.getElementById('percentage-input');
-      const pointsInput = document.getElementById('points-input');
-      const fixedInput = document.getElementById('fixed-input');
-
-      switch (option) {
-        case 'percentage':
-          percentageInput.style.display = document.getElementById('enable-percentage').checked ? 'block' : 'none';
-          break;
-        case 'points':
-          pointsInput.style.display = document.getElementById('enable-points').checked ? 'block' : 'none';
-          break;
-        case 'fixed':
-          fixedInput.style.display = document.getElementById('enable-fixed').checked ? 'block' : 'none';
-          break;
-      }
-    }
-
-    function startTrailingStop() {
-      alert("Starting auto stop-loss sell...");
-      // real logic here
-    }
-    function stopTrailingStop() {
-      alert("Stopping auto stop-loss sell...");
-    }
 
     // ========== TRADINGVIEW CHART ==========
     function updateLiveChart(symbolInput) {
