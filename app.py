@@ -25,6 +25,7 @@ smartApi = SmartConnect(api_key=api_key)
 app = Flask(__name__)
 # Global flag to manage auto-trading
 stop_auto_trade_flag = [False]  # Using a mutable list for shared access
+
 # -------------------------------------------------------------------------
 # HELPER FUNCTIONS
 # -------------------------------------------------------------------------
@@ -233,7 +234,7 @@ def start_auto_trade():
 
     return jsonify({"success": True, "message": f"Started auto-trading for {symbol}"})
 
-# API to stop auto-trading
+# API to stop auto-trading (1st definition)
 @app.route('/api/stop_auto_trade', methods=['POST'])
 def stop_auto_trade():
     """
@@ -301,16 +302,16 @@ def api_get_profile():
 def manual_trade():
     data = request.get_json()
     symbol = data.get('symbol')
-    target_price = float(data.get('target_price'))
-    quantity = int(data.get('quantity'))
-    transaction_type = data.get('transaction_type')
+    target_price = float(data.get('target_price', 0))  # default 0 if not provided
+    quantity = int(data.get('quantity', 1))
+    transaction_type = data.get('transaction_type', 'BUY')
     try:
         order_id = place_order({
             "tradingsymbol": symbol,
             "price": target_price,
             "quantity": quantity,
             "transactiontype": transaction_type,
-            "exchange": "NFO",
+            "exchange": "NFO",  # or 'NSE' if you want equity
             "producttype": "INTRADAY",
             "ordertype": "LIMIT"
         })
@@ -320,6 +321,7 @@ def manual_trade():
             return jsonify({"success": False, "message": "Order placement failed."})
     except Exception as e:
         return jsonify({"success": False, "message": f"Error: {str(e)}"})
+
 
 @app.route('/api/auto_trade', methods=['POST'])
 def auto_trade():
@@ -369,14 +371,406 @@ def auto_trade():
     Thread(target=monitor_and_trade).start()
     return jsonify({"success": True, "message": "Auto trading started successfully."})
 
+# API to stop auto-trading (2nd definition, kept as is - duplicate route name)
 @app.route('/api/stop_auto_trade', methods=['POST'])
-def stop_auto_trade():
+def stop_auto_trade_2():
+    # The second definition of the same route, intentionally preserved
     stop_auto_trade_flag[0] = True
     return jsonify({"success": True, "message": "Auto trading stopped successfully."})
+
+
+# -------------------------------------------------------------------------
+# NEW FEATURES IMPLEMENTATION
+# (Auto Trailing SL, Auto Trailing Buy, Single-Click Execute, Two-Way Switch,
+#  SL Based on Price/Points/%, Automatic Calculation of Loss %)
+# -------------------------------------------------------------------------
+
+##############################
+# 1) AUTO TRAILING STOP LOSS #
+##############################
+@app.route('/api/auto_trailing_stop_loss', methods=['POST'])
+def auto_trailing_stop_loss():
+    """
+    Automatically adjusts the stop-loss level as the market moves favorably.
+    Example usage:
+    JSON Body: {
+       "symbol": "NIFTY",
+       "quantity": 75,
+       "initial_sl": 100,           # e.g. a price or offset
+       "trailing_basis": "points",  # 'price', 'points', or 'percentage'
+       "trail_value": 20,
+       "entry_price": 150
+    }
+    """
+    data = request.get_json()
+    symbol = data.get('symbol')
+    quantity = int(data.get('quantity', 1))
+    initial_sl = float(data.get('initial_sl', 0))
+    trailing_basis = data.get('trailing_basis', 'points')  # price, points, percentage
+    trail_value = float(data.get('trail_value', 0))
+    entry_price = float(data.get('entry_price', 0))
+
+    # We can store the highest price since entry; if the price goes up, move SL up.
+    highest_price = [entry_price]  # list so it can be mutated in local function
+    is_active = True
+
+    def trailing_sl_thread():
+        try:
+            while is_active:
+                current_price = fetch_live_price(symbol)
+                if current_price is None:
+                    time.sleep(5)
+                    continue
+
+                # Update highest price if current price is new high
+                if current_price > highest_price[0]:
+                    highest_price[0] = current_price
+
+                # Calculate new Stop Loss if needed
+                if trailing_basis == 'price':
+                    # If highest price is above some threshold, set SL to that threshold
+                    # This is a simplistic approach
+                    new_sl = highest_price[0] - trail_value
+                elif trailing_basis == 'points':
+                    # e.g. if we want to trail by 20 points from the highest price
+                    new_sl = highest_price[0] - trail_value
+                else:  # 'percentage'
+                    new_sl = highest_price[0] * (1 - trail_value / 100.0)
+
+                # If new SL is bigger than the old SL, update it
+                if new_sl > initial_sl:
+                    initial_sl_local = new_sl
+                else:
+                    initial_sl_local = initial_sl
+
+                # If the current price breaks below our SL, exit
+                if current_price <= initial_sl_local:
+                    logger.info(f"Trailing SL triggered at {current_price}. Exiting position.")
+                    place_order({
+                        "tradingsymbol": symbol,
+                        "price": current_price,
+                        "quantity": quantity,
+                        "transactiontype": "SELL",
+                        "exchange": "NFO",
+                        "producttype": "INTRADAY",
+                        "ordertype": "MARKET"
+                    })
+                    break
+
+                time.sleep(5)
+        except Exception as e:
+            logger.error(f"Error in auto trailing stop loss: {e}")
+
+    Thread(target=trailing_sl_thread).start()
+    return jsonify({"success": True, "message": "Auto Trailing Stop Loss initiated."})
+
+
+############################
+# 2) AUTO TRAILING BUY     #
+############################
+@app.route('/api/auto_trailing_buy', methods=['POST'])
+def auto_trailing_buy():
+    """
+    Automatically places a buy order as the market moves favorably.
+    Example usage:
+    JSON Body: {
+       "symbol": "NIFTY",
+       "quantity": 75,
+       "trailing_basis": "points",  # price, points, or percentage
+       "trigger_value": 20,
+       "current_reference": 150
+    }
+    """
+    data = request.get_json()
+    symbol = data.get('symbol')
+    quantity = int(data.get('quantity', 1))
+    trailing_basis = data.get('trailing_basis', 'points')
+    trigger_value = float(data.get('trigger_value', 0))
+    current_reference = float(data.get('current_reference', 0))
+    is_active = True
+
+    def trailing_buy_thread():
+        try:
+            initial_ref_price = current_reference
+            while is_active:
+                live_price = fetch_live_price(symbol)
+                if live_price is None:
+                    time.sleep(5)
+                    continue
+
+                # Decide if we should buy
+                if trailing_basis == 'price':
+                    # If current price <= some specified price
+                    if live_price <= trigger_value:
+                        logger.info(f"Auto trailing BUY triggered at {live_price}. Placing order.")
+                        place_order({
+                            "tradingsymbol": symbol,
+                            "price": live_price,
+                            "quantity": quantity,
+                            "transactiontype": "BUY",
+                            "exchange": "NFO",
+                            "producttype": "INTRADAY",
+                            "ordertype": "MARKET"
+                        })
+                        break
+                elif trailing_basis == 'points':
+                    # If price has moved down certain points from initial_ref_price
+                    if live_price <= (initial_ref_price - trigger_value):
+                        logger.info(f"Auto trailing BUY triggered. Price fell {trigger_value} from {initial_ref_price}.")
+                        place_order({
+                            "tradingsymbol": symbol,
+                            "price": live_price,
+                            "quantity": quantity,
+                            "transactiontype": "BUY",
+                            "exchange": "NFO",
+                            "producttype": "INTRADAY",
+                            "ordertype": "MARKET"
+                        })
+                        break
+                else:  # 'percentage'
+                    if live_price <= initial_ref_price * (1 - trigger_value / 100.0):
+                        logger.info(f"Auto trailing BUY triggered. Price fell {trigger_value}% from {initial_ref_price}.")
+                        place_order({
+                            "tradingsymbol": symbol,
+                            "price": live_price,
+                            "quantity": quantity,
+                            "transactiontype": "BUY",
+                            "exchange": "NFO",
+                            "producttype": "INTRADAY",
+                            "ordertype": "MARKET"
+                        })
+                        break
+
+                time.sleep(5)
+        except Exception as e:
+            logger.error(f"Error in auto trailing buy: {e}")
+
+    Thread(target=trailing_buy_thread).start()
+    return jsonify({"success": True, "message": "Auto Trailing Buy initiated."})
+
+
+##############################################
+# 3) SINGLE-CLICK EXECUTE WITHOUT CONDITIONS #
+##############################################
+@app.route('/api/single_click_execute', methods=['POST'])
+def single_click_execute():
+    """
+    Immediately executes a trade with minimal inputs, no conditions.
+    JSON body example:
+    {
+        "symbol": "NIFTY",
+        "quantity": 75,
+        "transactiontype": "BUY"
+    }
+    """
+    data = request.get_json()
+    symbol = data.get('symbol')
+    quantity = int(data.get('quantity', 1))
+    transactiontype = data.get('transactiontype', 'BUY')
+
+    try:
+        current_price = fetch_live_price(symbol)
+        if current_price is None:
+            return jsonify({"success": False, "message": "Couldn't fetch live price."})
+
+        order_id = place_order({
+            "tradingsymbol": symbol,
+            "price": current_price,
+            "quantity": quantity,
+            "transactiontype": transactiontype,
+            "exchange": "NFO",
+            "producttype": "INTRADAY",
+            "ordertype": "MARKET"
+        })
+        if order_id:
+            return jsonify({"success": True, "message": f"Single-click trade placed. ID: {order_id}"})
+        else:
+            return jsonify({"success": False, "message": "Order placement failed."})
+    except Exception as e:
+        logger.error(f"Error in single-click execution: {e}")
+        return jsonify({"success": False, "message": str(e)})
+
+
+################################################
+# 4) TWO-WAY CALL AND PUT ORDER SWITCHING LOGIC #
+################################################
+@app.route('/api/two_way_switch', methods=['POST'])
+def two_way_switch():
+    """
+    Automatically switch between a Call and a Put position (closing the opposite).
+    JSON example:
+    {
+        "current_position": "CALL",    # or "PUT"
+        "symbol_call": "NIFTYCALL",
+        "symbol_put": "NIFTYPUT",
+        "quantity": 75,
+        "switch_to": "PUT"            # or "CALL"
+    }
+    """
+    data = request.get_json()
+    current_position = data.get('current_position')
+    symbol_call = data.get('symbol_call')
+    symbol_put = data.get('symbol_put')
+    quantity = int(data.get('quantity', 1))
+    switch_to = data.get('switch_to')
+
+    try:
+        # Close the current position
+        if current_position == "CALL":
+            # Close the CALL
+            place_order({
+                "tradingsymbol": symbol_call,
+                "transactiontype": "SELL",
+                "exchange": "NFO",
+                "ordertype": "MARKET",
+                "producttype": "INTRADAY",
+                "quantity": quantity,
+                "price": 0  # Market
+            })
+            logger.info(f"Closed CALL: {symbol_call}")
+        else:
+            # Close the PUT
+            place_order({
+                "tradingsymbol": symbol_put,
+                "transactiontype": "SELL",
+                "exchange": "NFO",
+                "ordertype": "MARKET",
+                "producttype": "INTRADAY",
+                "quantity": quantity,
+                "price": 0
+            })
+            logger.info(f"Closed PUT: {symbol_put}")
+
+        # Open the new position
+        if switch_to == "CALL":
+            place_order({
+                "tradingsymbol": symbol_call,
+                "transactiontype": "BUY",
+                "exchange": "NFO",
+                "ordertype": "MARKET",
+                "producttype": "INTRADAY",
+                "quantity": quantity,
+                "price": 0
+            })
+            logger.info(f"Switched to CALL: {symbol_call}")
+        else:
+            place_order({
+                "tradingsymbol": symbol_put,
+                "transactiontype": "BUY",
+                "exchange": "NFO",
+                "ordertype": "MARKET",
+                "producttype": "INTRADAY",
+                "quantity": quantity,
+                "price": 0
+            })
+            logger.info(f"Switched to PUT: {symbol_put}")
+
+        return jsonify({"success": True, "message": f"Switched from {current_position} to {switch_to} successfully."})
+    except Exception as e:
+        logger.error(f"Error in two-way switch: {e}")
+        return jsonify({"success": False, "message": str(e)})
+
+
+############################################################
+# 5) STOP LOSS BASED ON PRICE, POINTS, AND PERCENTAGE LOGIC #
+############################################################
+@app.route('/api/stop_loss_variants', methods=['POST'])
+def stop_loss_variants():
+    """
+    Use different ways to define SL:
+      - fixed price
+      - points offset from entry
+      - percentage offset from entry
+    JSON example:
+    {
+        "symbol": "NIFTY",
+        "quantity": 75,
+        "entry_price": 150,
+        "stop_loss_type": "points",  # "price", "points", "percentage"
+        "stop_loss_value": 10
+    }
+    """
+    data = request.get_json()
+    symbol = data.get("symbol")
+    quantity = int(data.get("quantity", 1))
+    entry_price = float(data.get("entry_price", 0))
+    stop_loss_type = data.get("stop_loss_type", "price")
+    stop_loss_value = float(data.get("stop_loss_value", 0))
+
+    # Calculate actual stop loss price
+    if stop_loss_type == "price":
+        sl_price = stop_loss_value
+    elif stop_loss_type == "points":
+        sl_price = entry_price - stop_loss_value
+    else:
+        sl_price = entry_price * (1 - stop_loss_value / 100.0)
+
+    # Start a background thread to watch the price
+    is_active = True
+    def sl_monitor():
+        try:
+            while is_active:
+                live_price = fetch_live_price(symbol)
+                if live_price is None:
+                    time.sleep(5)
+                    continue
+                if live_price <= sl_price:
+                    logger.info(f"Stop-loss triggered at {live_price}. SELL order placed.")
+                    place_order({
+                        "tradingsymbol": symbol,
+                        "price": live_price,
+                        "quantity": quantity,
+                        "transactiontype": "SELL",
+                        "exchange": "NFO",
+                        "producttype": "INTRADAY",
+                        "ordertype": "MARKET"
+                    })
+                    break
+                time.sleep(5)
+        except Exception as e:
+            logger.error(f"Error in stop_loss_variants: {e}")
+
+    Thread(target=sl_monitor).start()
+    return jsonify({
+        "success": True, 
+        "message": f"Stop loss set at {sl_price} for {symbol} with entry {entry_price}"
+    })
+
+
+####################################################
+# 6) AUTOMATIC CALCULATION OF SL LOSS PERCENTAGE    #
+####################################################
+@app.route('/api/calculate_sl_loss_percentage', methods=['POST'])
+def calculate_sl_loss_percentage():
+    """
+    Given an entry price and a stop loss price, return the potential loss %.
+    JSON example:
+    {
+        "entry_price": 100,
+        "stop_loss_price": 95
+    }
+    """
+    data = request.get_json()
+    entry_price = float(data.get("entry_price", 0))
+    stop_loss_price = float(data.get("stop_loss_price", 0))
+
+    if entry_price <= 0:
+        return jsonify({"success": False, "message": "Invalid entry price."})
+
+    loss_amount = entry_price - stop_loss_price
+    loss_percentage = (loss_amount / entry_price) * 100.0
+
+    return jsonify({
+        "success": True,
+        "entry_price": entry_price,
+        "stop_loss_price": stop_loss_price,
+        "loss_percentage": round(loss_percentage, 2)
+    })
+
 
 # -------------------------------------------------------------------------
 # RUN FLASK (Development Only)
 # -------------------------------------------------------------------------
 if __name__ == "__main__":
+    # Just ensure you have a valid 'authToken' if needed for certain calls
     app.run(debug=True)
-

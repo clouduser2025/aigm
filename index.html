@@ -1,973 +1,1649 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angel One Trading Dashboard with Live Chart</title>
-    <!-- Include Bootstrap for styling -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <!-- TradingView Library -->
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Angel One Trading Dashboard with Live Chart</title>
+  <!-- Include Bootstrap for styling -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <!-- TradingView Library -->
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 
-    <style>
-        /* General Body Styles */
-        body {
-            background: radial-gradient(circle, #ffffff 30%, #f9f9f9 100%);
-            color: #333333;
-            font-family: "Arial", sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+  <style>
+    /* General Body Styles */
+    body {
+      background: radial-gradient(circle, #ffffff 30%, #f9f9f9 100%);
+      color: #333333;
+      font-family: "Arial", sans-serif;
+      margin: 0;
+      padding: 0;
+    }
 
-        /* Navbar */
-        .navbar {
-            background: linear-gradient(to bottom, #ffffff, #f0f0f0);
-            padding: 20px 30px;
-            box-shadow: 0 4px 10px rgba(255, 253, 255, 0.4);
-            border-bottom: 2px solid #007bff;
-        }
+    /* Navbar */
+    .navbar {
+      background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+      padding: 20px 30px;
+      box-shadow: 0 4px 10px rgba(255, 253, 255, 0.4);
+      border-bottom: 2px solid #007bff;
+    }
 
-        .navbar-brand {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #007bff;
-            text-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
-        }
+    .navbar-brand {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007bff;
+      text-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
+    }
 
-        .navbar-brand:hover {
-            color: #0056b3;
-            text-shadow: 0 0 15px rgba(0, 86, 179, 0.8);
-        }
+    .navbar-brand:hover {
+      color: #0056b3;
+      text-shadow: 0 0 15px rgba(0, 86, 179, 0.8);
+    }
 
-        /* Logo Glow */
-        .logo-container img {
-            max-width: 150px;
-            height: auto;
-            filter: drop-shadow(0 0 10px rgba(0, 123, 255, 1));
-        }
+    /* Logo Glow */
+    .logo-container img {
+      max-width: 150px;
+      height: auto;
+      filter: drop-shadow(0 0 10px rgba(0, 123, 255, 1));
+    }
 
-        /* Buttons */
-        .btn-primary {
-            background: linear-gradient(to right, #007bff, #0056b3);
-            border: none;
-            color: #fff;
-            font-weight: bold;
-            text-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.6);
-            transition: all 0.3s ease;
-        }
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(to right, #007bff, #0056b3);
+      border: none;
+      color: #fff;
+      font-weight: bold;
+      text-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.6);
+      transition: all 0.3s ease;
+    }
 
-        .btn-primary:hover {
-            background: linear-gradient(to right, #0056b3, #007bff);
-            box-shadow: 0 6px 15px rgba(0, 123, 255, 0.8);
-            transform: scale(1.05);
-        }
+    .btn-primary:hover {
+      background: linear-gradient(to right, #0056b3, #007bff);
+      box-shadow: 0 6px 15px rgba(0, 123, 255, 0.8);
+      transform: scale(1.05);
+    }
 
-        .btn-nav {
-            margin-right: 5px;
-            margin-bottom: 5px;
-            background: linear-gradient(90deg, #228B22, #FF0000);
-            background-size: 200% 200%;
-            color: #FFFFFF;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 0 10px rgba(34, 139, 34, 0.7);
-            transition: all 0.3s ease;
-            animation: gradient-flow 4s infinite, button-glow 2s infinite alternate;
-        }
+    .btn-nav {
+      margin-right: 5px;
+      margin-bottom: 5px;
+      background: linear-gradient(90deg, #228b22, #ff0000);
+      background-size: 200% 200%;
+      color: #ffffff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 0 10px rgba(34, 139, 34, 0.7);
+      transition: all 0.3s ease;
+      animation: gradient-flow 4s infinite, button-glow 2s infinite alternate;
+    }
 
-        .btn-nav:hover {
-            background: linear-gradient(90deg, #006400, #CC0000);
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
-        }
+    .btn-nav:hover {
+      background: linear-gradient(90deg, #006400, #cc0000);
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+    }
 
-        /* Gradient Flow Animation */
-        @keyframes gradient-flow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+    /* Gradient Flow Animation */
+    @keyframes gradient-flow {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
 
-        /* Button Glow Animation */
-        @keyframes button-glow {
-            0% { box-shadow: 0 0 10px rgba(34, 139, 34, 0.7); }
-            100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
-        }
+    /* Button Glow Animation */
+    @keyframes button-glow {
+      0% {
+        box-shadow: 0 0 10px rgba(34, 139, 34, 0.7);
+      }
+      100% {
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+      }
+    }
 
-        /* Custom Card Styles */
-        .custom-card {
-            background: linear-gradient(145deg, #ffffff, #f9f9f9);
-            border: 1px solid #007bff;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
+    /* Custom Card Styles */
+    .custom-card {
+      background: linear-gradient(145deg, #ffffff, #f9f9f9);
+      border: 1px solid #007bff;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
 
-        .custom-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 12px 30px rgba(0, 123, 255, 0.6);
-        }
+    .custom-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 30px rgba(0, 123, 255, 0.6);
+    }
 
-        .custom-card h5 {
-            margin-bottom: 1rem;
-            color: #007bff;
-            text-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
-        }
+    .custom-card h5 {
+      margin-bottom: 1rem;
+      color: #007bff;
+      text-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
+    }
 
-        /* Form Elements */
-        .form-label {
-            color: #008000;
-        }
+    /* Form Elements */
+    .form-label {
+      color: #008000;
+    }
 
-        input.form-control, select.form-select {
-            background: #fff;
-            color: #FF2C2C;
-            border: 1px solid #008000;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(255, 215, 0, 0.3);
-            padding: 10px;
-        }
+    input.form-control,
+    select.form-select {
+      background: #fff;
+      color: #ff2c2c;
+      border: 1px solid #008000;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(255, 215, 0, 0.3);
+      padding: 10px;
+    }
 
-        input.form-control:focus, select.form-select:focus {
-            border-color: #FFD700;
-            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.6);
-        }
+    input.form-control:focus,
+    select.form-select:focus {
+      border-color: #ffd700;
+      box-shadow: 0 4px 10px rgba(255, 215, 0, 0.6);
+    }
 
-        /* Response Box */
-        .response-box {
-            background: #fff;
-            color: #008000;
-            border: 1px solid #008000;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
-            display: none; /* default hidden, shown when text is added */
-        }
+    /* Response Box */
+    .response-box {
+      background: #fff;
+      color: #008000;
+      border: 1px solid #008000;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
+      display: none; /* default hidden, shown when text is added */
+    }
 
-        /* Footer */
-        footer {
-            background: #fff;
-            color: #000;
-            padding: 20px;
-            text-align: center;
-            border-top: 2px solid #FF2C2C;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-        }
+    /* Footer */
+    footer {
+      background: #fff;
+      color: #000;
+      padding: 20px;
+      text-align: center;
+      border-top: 2px solid #ff2c2c;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+    }
 
-        #chart-container {
-        width: 100%;
-        height: 1000px; /* Increased height */
-        border: 1px solid #008000;
-        border-radius: 10px;
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-        background-color: #ffffff;
-        margin-top: 20px;
-}
-
+    #chart-container {
+      width: 100%;
+      height: 1000px; /* Increased height */
+      border: 1px solid #008000;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+      background-color: #ffffff;
+      margin-top: 20px;
+    }
 
     .condition-box {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        margin-bottom: 20px;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      margin-bottom: 20px;
     }
 
     .condition-box h5 {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #007bff;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #007bff;
     }
 
     .condition-box p {
-        font-size: 14px;
-        line-height: 1.5;
-        color: #333;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #333;
     }
 
+    #conditions-text {
+      margin-top: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      display: none;
+      background-color: #e9ecef;
+      padding: 10px;
+      border-radius: 2px;
+      color: #333;
+    }
 
-        #conditions-text {
-            margin-top: 10px;
-            font-size: 14px;
-            font-weight: bold;
-            display: none;
-            background-color: #e9ecef;
-            padding: 10px;
-            border-radius: 2px;
-            color: #333;
-        }
-
-        /* Smooth Scroll */
-        html {
-            scroll-behavior: smooth;
-        }
-    </style>
+    /* Smooth Scroll */
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
 </head>
 <body>
-
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <!-- Left Logo -->
-        <div class="logo-container">
-            <img src="Angel.png" alt="Angel One Logo">
-        </div>
-        <!-- Navbar Brand -->
-        <span class="navbar-brand">Angel One Trading Dashboard</span>
-        <!-- Right Logo -->
-        <div class="logo-container">
-            <img src="ramdoot.jpg" alt="Ramdoot Logo">
-        </div>
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg">
+    <div
+      class="container-fluid d-flex justify-content-between align-items-center"
+    >
+      <!-- Left Logo -->
+      <div class="logo-container">
+        <img src="Angel.png" alt="Angel One Logo" />
+      </div>
+      <!-- Navbar Brand -->
+      <span class="navbar-brand">Angel One Trading Dashboard</span>
+      <!-- Right Logo -->
+      <div class="logo-container">
+        <img src="ramdoot.jpg" alt="Ramdoot Logo" />
+      </div>
     </div>
-</nav>
+  </nav>
 
-<!-- STEP BUTTONS -->
-<div class="container mt-3">
+  <!-- STEP BUTTONS -->
+  <div class="container mt-3">
     <!-- Clicking these buttons calls showSection() to reveal the relevant part in the left column -->
-    <button class="btn-nav" onclick="showSection('sectionLogin')">Login</button>
-    <button class="btn-nav" onclick="showSection('sectionManualTrade')">Manual Trade</button>
-    <button class="btn-nav" onclick="showSection('section2')">Place Order (Demo)</button>
-    <button class="btn-nav" onclick="showSection('section3')">Create GTT</button>
-    <button class="btn-nav" onclick="showSection('section4')">List GTT</button>
-    <button class="btn-nav" onclick="showSection('sectionProfile')">Profile</button>
-    <button class="btn-nav" onclick="showSection('sectionAutoTrade')">Auto Trade</button>
-</div>
+    <button class="btn-nav" onclick="showSection('sectionLogin')">
+      Login
+    </button>
+    <button class="btn-nav" onclick="showSection('sectionManualTrade')">
+      Manual Trade
+    </button>
+    <button class="btn-nav" onclick="showSection('section2')">
+      Place Order (Demo)
+    </button>
+    <button class="btn-nav" onclick="showSection('section3')">
+      Create GTT
+    </button>
+    <button class="btn-nav" onclick="showSection('section4')">
+      List GTT
+    </button>
+    <button class="btn-nav" onclick="showSection('sectionProfile')">
+      Profile
+    </button>
+    <button class="btn-nav" onclick="showSection('sectionAutoTrade')">
+      Auto Trade
+ 
+  </div>
 
-<!-- MAIN CONTENT: SPLIT INTO TWO COLUMNS (Left: sections & Right: chart) -->
-<div class="container-fluid">
-  <div class="row">
-    <!-- LEFT COLUMN -->
-    <div class="col-md-6">
-      
-      <!-- LOGIN SECTION -->
-      <div class="row mb-4" id="sectionLogin" style="display:none;">
+  <!-- MAIN CONTENT: SPLIT INTO TWO COLUMNS (Left: sections & Right: chart) -->
+  <div class="container-fluid">
+    <div class="row">
+      <!-- LEFT COLUMN -->
+      <div class="col-md-6">
+        <!-- LOGIN SECTION -->
+        <div class="row mb-4" id="sectionLogin" style="display: none">
           <div class="col-lg-12">
-              <div class="card custom-card">
-                  <div class="card-body">
-                      <h5 class="card-title">1. Login</h5>
-                      <div class="mb-3">
-                          <label for="username" class="form-label">Username</label>
-                          <input id="username" type="text" class="form-control" placeholder="Username">
-                      </div>
-                      <div class="mb-3">
-                          <label for="password" class="form-label">Password</label>
-                          <input id="password" type="password" class="form-control" placeholder="Password">
-                      </div>
-                      <div class="mb-3">
-                          <label for="totp" class="form-label">TOTP Secret (from QR Code)</label>
-                          <input id="totp" type="text" class="form-control" placeholder="TOTP secret">
-                      </div>
-                      <button class="btn btn-primary" onclick="login()">Login</button>
-                      <div id="login-response" class="response-box"></div>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <!-- MANUAL TRADE SECTION -->
-      <div class="row mb-4" id="sectionManualTrade" style="display:none;">
-        <div class="col-lg-12">
-          <div class="card custom-card">
-            <div class="card-body">
-              <h5 class="card-title">Manual Trade</h5>
-              <p class="small text-muted" style="color:#000000 !important;">
-                  Enter your symbol to update the live chart automatically.
-              </p>
-              <div class="mb-2">
-                  <label for="manual-symbol" class="form-label">Trading Symbol</label>
-                  <input id="manual-symbol" type="text" class="form-control" placeholder="e.g. SBIN, RELIANCE, NIFTY">
-              </div>
-              <div class="mb-2">
-                  <label for="manual-quantity" class="form-label">Quantity</label>
-                  <input id="manual-quantity" type="number" class="form-control" value="1">
-              </div>
-              <div class="mb-2">
-                  <label for="manual-transaction" class="form-label">Transaction Type</label>
-                  <select id="manual-transaction" class="form-select">
-                      <option value="BUY">Buy</option>
-                      <option value="SELL">Sell</option>
-                  </select>
-              </div>
-              <button class="btn btn-success" onclick="performManualTrade()">Execute Manual Trade</button>
-              <div id="manual-trade-response" class="response-box"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PLACE ORDER (DEMO) SECTION -->
-      <div class="row mb-4" id="section2" style="display:none;">
-        <div class="col-lg-12">
             <div class="card custom-card">
-                <div class="card-body">
-                    <h5 class="card-title">2. Place Order (Demo)</h5>
-                    <p class="small text-muted" style="color:#000000 !important;">
-                        Example parameters for demonstration. Adjust as needed.
-                    </p>
-                    
-                    <!-- Variety Dropdown -->
-                    <div class="mb-2">
-                        <label for="order-variety" class="form-label">Variety</label>
-                        <select id="order-variety" class="form-select">
-                            <option value="NORMAL">Normal Order (Regular)</option>
-                            <option value="STOPLOSS">Stop Loss Order</option>
-                            <option value="AMO">After Market Order</option>
-                            <option value="ROBO">ROBO (Bracket Order)</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Trading Symbol -->
-                    <div class="mb-2">
-                        <label for="order-tradingsymbol" class="form-label">Trading Symbol</label>
-                        <input id="order-tradingsymbol" type="text" class="form-control" value="SBIN-EQ">
-                    </div>
-                    
-                    <!-- Symbol Token -->
-                    <div class="mb-2">
-                        <label for="order-symboltoken" class="form-label">Symbol Token</label>
-                        <input id="order-symboltoken" type="text" class="form-control" value="3045">
-                    </div>
-                    
-                    <!-- Transaction Type Dropdown -->
-                    <div class="mb-2">
-                        <label for="order-transactiontype" class="form-label">Transaction Type</label>
-                        <select id="order-transactiontype" class="form-select">
-                            <option value="BUY">Buy</option>
-                            <option value="SELL">Sell</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Exchange Dropdown -->
-                    <div class="mb-2">
-                        <label for="order-exchange" class="form-label">Exchange</label>
-                        <select id="order-exchange" class="form-select">
-                            <option value="NSE">NSE (Equity)</option>
-                            <option value="BSE">BSE (Equity)</option>
-                            <option value="NFO">NSE F&O</option>
-                            <option value="MCX">MCX Commodity</option>
-                            <option value="BFO">BSE F&O</option>
-                            <option value="CDS">Currency Derivative</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Order Type Dropdown -->
-                    <div class="mb-2">
-                        <label for="order-ordertype" class="form-label">Order Type</label>
-                        <select id="order-ordertype" class="form-select">
-                            <option value="MARKET">Market (MKT)</option>
-                            <option value="LIMIT">Limit (L)</option>
-                            <option value="STOPLOSS_LIMIT">Stop Loss Limit (SL)</option>
-                            <option value="STOPLOSS_MARKET">Stop Loss Market (SL-M)</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Product Type Dropdown -->
-                    <div class="mb-2">
-                        <label for="order-producttype" class="form-label">Product Type</label>
-                        <select id="order-producttype" class="form-select">
-                            <option value="DELIVERY">CNC</option>
-                            <option value="CARRYFORWARD">NRML</option>
-                            <option value="MARGIN">Margin Delivery</option>
-                            <option value="INTRADAY">MIS</option>
-                            <option value="BO">BO</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Duration Dropdown -->
-                    <div class="mb-2">
-                        <label for="order-duration" class="form-label">Duration</label>
-                        <select id="order-duration" class="form-select">
-                            <option value="DAY">DAY</option>
-                            <option value="IOC">IOC</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Price -->
-                    <div class="mb-2">
-                        <label for="order-price" class="form-label">Price</label>
-                        <input id="order-price" type="text" class="form-control" value="19500">
-                    </div>
-                    
-                    <!-- Quantity -->
-                    <div class="mb-2">
-                        <label for="order-quantity" class="form-label">Quantity</label>
-                        <input id="order-quantity" type="text" class="form-control" value="1">
-                    </div>
-                    
-                    <!-- Place Order Button -->
-                    <button class="btn btn-success" onclick="placeOrder()">Place Order</button>
-                    <div id="order-response" class="response-box"></div>
+              <div class="card-body">
+                <h5 class="card-title">1. Login</h5>
+                <div class="mb-3">
+                  <label for="username" class="form-label">Username</label>
+                  <input
+                    id="username"
+                    type="text"
+                    class="form-control"
+                    placeholder="Username"
+                  />
                 </div>
+                <div class="mb-3">
+                  <label for="password" class="form-label">Password</label>
+                  <input
+                    id="password"
+                    type="password"
+                    class="form-control"
+                    placeholder="Password"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="totp" class="form-label"
+                    >TOTP Secret (from QR Code)</label
+                  >
+                  <input
+                    id="totp"
+                    type="text"
+                    class="form-control"
+                    placeholder="TOTP secret"
+                  />
+                </div>
+                <button class="btn btn-primary" onclick="login()">Login</button>
+                <div id="login-response" class="response-box"></div>
+              </div>
             </div>
+          </div>
         </div>
-      </div>
 
-      <!-- CREATE GTT -->
-      <div class="row mb-4" id="section3" style="display:none;">
+        <!-- MANUAL TRADE SECTION -->
+        <div class="row mb-4" id="sectionManualTrade" style="display: none">
           <div class="col-lg-12">
-              <div class="card custom-card">
-                  <div class="card-body">
-                      <h5 class="card-title">3. Create GTT Rule</h5>
-                      <p class="small text-muted" style="color:#000000 !important;">
-                          Example parameters for demonstration. Adjust as needed.
-                      </p>
-                      <div class="mb-2">
-                          <label for="gtt-tradingsymbol" class="form-label">Trading Symbol</label>
-                          <input id="gtt-tradingsymbol" type="text" class="form-control" value="SBIN-EQ">
-                      </div>
-                      <div class="mb-2">
-                          <label for="gtt-symboltoken" class="form-label">Symbol Token</label>
-                          <input id="gtt-symboltoken" type="text" class="form-control" value="3045">
-                      </div>
-                      <div class="mb-2">
-                          <label for="gtt-exchange" class="form-label">Exchange</label>
-                          <input id="gtt-exchange" type="text" class="form-control" value="NSE">
-                      </div>
-                      <div class="mb-2">
-                          <label for="gtt-producttype" class="form-label">Product Type</label>
-                          <input id="gtt-producttype" type="text" class="form-control" value="MARGIN">
-                      </div>
-                      <div class="mb-2">
-                          <label for="gtt-transactiontype" class="form-label">Transaction Type (BUY/SELL)</label>
-                          <input id="gtt-transactiontype" type="text" class="form-control" value="BUY">
-                      </div>
-                      <div class="mb-2">
-                          <label for="gtt-price" class="form-label">Price</label>
-                          <input id="gtt-price" type="number" class="form-control" value="100000">
-                      </div>
-                      <div class="mb-2">
-                          <label for="gtt-qty" class="form-label">Quantity</label>
-                          <input id="gtt-qty" type="number" class="form-control" value="10">
-                      </div>
-                      <div class="mb-2">
-                          <label for="gtt-disclosedqty" class="form-label">Disclosed Quantity</label>
-                          <input id="gtt-disclosedqty" type="number" class="form-control" value="10">
-                      </div>
-                      <div class="mb-2">
-                          <label for="gtt-triggerprice" class="form-label">Trigger Price</label>
-                          <input id="gtt-triggerprice" type="number" class="form-control" value="200000">
-                      </div>
-                      <div class="mb-2">
-                          <label for="gtt-timeperiod" class="form-label">Time Period</label>
-                          <input id="gtt-timeperiod" type="number" class="form-control" value="365">
-                      </div>
-
-                      <button class="btn btn-warning" onclick="createGttRule()">Create GTT Rule</button>
-                      <div id="gtt-create-response" class="response-box"></div>
-                  </div>
+            <div class="card custom-card">
+              <div class="card-body">
+                <h5 class="card-title">Manual Trade</h5>
+                <p
+                  class="small text-muted"
+                  style="color: #000000 !important"
+                >
+                  Enter your symbol to update the live chart automatically.
+                </p>
+                <div class="mb-2">
+                  <label for="manual-symbol" class="form-label"
+                    >Trading Symbol</label
+                  >
+                  <input
+                    id="manual-symbol"
+                    type="text"
+                    class="form-control"
+                    placeholder="e.g. SBIN, RELIANCE, NIFTY"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label for="manual-quantity" class="form-label"
+                    >Quantity</label
+                  >
+                  <input
+                    id="manual-quantity"
+                    type="number"
+                    class="form-control"
+                    value="1"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label
+                    for="manual-transaction"
+                    class="form-label"
+                    >Transaction Type</label
+                  >
+                  <select id="manual-transaction" class="form-select">
+                    <option value="BUY">Buy</option>
+                    <option value="SELL">Sell</option>
+                  </select>
+                </div>
+                <button
+                  class="btn btn-success"
+                  onclick="performManualTrade()"
+                >
+                  Execute Manual Trade
+                </button>
+                <div id="manual-trade-response" class="response-box"></div>
               </div>
+            </div>
           </div>
-      </div>
+        </div>
 
-      <!-- LIST GTT -->
-      <div class="row mb-4" id="section4" style="display:none;">
+        <!-- PLACE ORDER (DEMO) SECTION -->
+        <div class="row mb-4" id="section2" style="display: none">
           <div class="col-lg-12">
-              <div class="card custom-card">
-                  <div class="card-body">
-                      <h5 class="card-title">4. List GTT Rules</h5>
-                      <button class="btn btn-info" onclick="listGttRules()">List GTT Rules</button>
-                      <div id="gtt-list-response" class="response-box"></div>
-                  </div>
-              </div>
-          </div>
-      </div>
+            <div class="card custom-card">
+              <div class="card-body">
+                <h5 class="card-title">2. Place Order (Demo)</h5>
+                <p
+                  class="small text-muted"
+                  style="color: #000000 !important"
+                >
+                  Example parameters for demonstration. Adjust as needed.
+                </p>
 
-      <!-- PROFILE -->
-      <div class="row mb-4" id="sectionProfile" style="display:none;">
+                <!-- Variety Dropdown -->
+                <div class="mb-2">
+                  <label for="order-variety" class="form-label"
+                    >Variety</label
+                  >
+                  <select id="order-variety" class="form-select">
+                    <option value="NORMAL">Normal Order (Regular)</option>
+                    <option value="STOPLOSS">Stop Loss Order</option>
+                    <option value="AMO">After Market Order</option>
+                    <option value="ROBO">ROBO (Bracket Order)</option>
+                  </select>
+                </div>
+
+                <!-- Trading Symbol -->
+                <div class="mb-2">
+                  <label for="order-tradingsymbol" class="form-label"
+                    >Trading Symbol</label
+                  >
+                  <input
+                    id="order-tradingsymbol"
+                    type="text"
+                    class="form-control"
+                    value="SBIN-EQ"
+                  />
+                </div>
+
+                <!-- Symbol Token -->
+                <div class="mb-2">
+                  <label for="order-symboltoken" class="form-label"
+                    >Symbol Token</label
+                  >
+                  <input
+                    id="order-symboltoken"
+                    type="text"
+                    class="form-control"
+                    value="3045"
+                  />
+                </div>
+
+                <!-- Transaction Type Dropdown -->
+                <div class="mb-2">
+                  <label
+                    for="order-transactiontype"
+                    class="form-label"
+                    >Transaction Type</label
+                  >
+                  <select id="order-transactiontype" class="form-select">
+                    <option value="BUY">Buy</option>
+                    <option value="SELL">Sell</option>
+                  </select>
+                </div>
+
+                <!-- Exchange Dropdown -->
+                <div class="mb-2">
+                  <label for="order-exchange" class="form-label"
+                    >Exchange</label
+                  >
+                  <select id="order-exchange" class="form-select">
+                    <option value="NSE">NSE (Equity)</option>
+                    <option value="BSE">BSE (Equity)</option>
+                    <option value="NFO">NSE F&O</option>
+                    <option value="MCX">MCX Commodity</option>
+                    <option value="BFO">BSE F&O</option>
+                    <option value="CDS">Currency Derivative</option>
+                  </select>
+                </div>
+
+                <!-- Order Type Dropdown -->
+                <div class="mb-2">
+                  <label for="order-ordertype" class="form-label"
+                    >Order Type</label
+                  >
+                  <select id="order-ordertype" class="form-select">
+                    <option value="MARKET">Market (MKT)</option>
+                    <option value="LIMIT">Limit (L)</option>
+                    <option value="STOPLOSS_LIMIT">Stop Loss Limit (SL)</option>
+                    <option value="STOPLOSS_MARKET">Stop Loss Market (SL-M)</option>
+                  </select>
+                </div>
+
+                <!-- Product Type Dropdown -->
+                <div class="mb-2">
+                  <label for="order-producttype" class="form-label"
+                    >Product Type</label
+                  >
+                  <select id="order-producttype" class="form-select">
+                    <option value="DELIVERY">CNC</option>
+                    <option value="CARRYFORWARD">NRML</option>
+                    <option value="MARGIN">Margin Delivery</option>
+                    <option value="INTRADAY">MIS</option>
+                    <option value="BO">BO</option>
+                  </select>
+                </div>
+
+                <!-- Duration Dropdown -->
+                <div class="mb-2">
+                  <label for="order-duration" class="form-label"
+                    >Duration</label
+                  >
+                  <select id="order-duration" class="form-select">
+                    <option value="DAY">DAY</option>
+                    <option value="IOC">IOC</option>
+                  </select>
+                </div>
+
+                <!-- Price -->
+                <div class="mb-2">
+                  <label for="order-price" class="form-label"
+                    >Price</label
+                  >
+                  <input
+                    id="order-price"
+                    type="text"
+                    class="form-control"
+                    value="19500"
+                  />
+                </div>
+
+                <!-- Quantity -->
+                <div class="mb-2">
+                  <label for="order-quantity" class="form-label"
+                    >Quantity</label
+                  >
+                  <input
+                    id="order-quantity"
+                    type="text"
+                    class="form-control"
+                    value="1"
+                  />
+                </div>
+
+                <!-- Place Order Button -->
+                <button class="btn btn-success" onclick="placeOrder()">
+                  Place Order
+                </button>
+                <div id="order-response" class="response-box"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CREATE GTT -->
+        <div class="row mb-4" id="section3" style="display: none">
           <div class="col-lg-12">
-              <div class="card custom-card">
-                  <div class="card-body">
-                      <h5 class="card-title">Profile</h5>
-                      <button class="btn btn-info" onclick="fetchProfile()">Fetch Profile</button>
-                      <div id="profile-response" class="response-box" style="overflow-x: auto;"></div>
-                  </div>
-              </div>
-          </div>
-      </div>
+            <div class="card custom-card">
+              <div class="card-body">
+                <h5 class="card-title">3. Create GTT Rule</h5>
+                <p
+                  class="small text-muted"
+                  style="color: #000000 !important"
+                >
+                  Example parameters for demonstration. Adjust as needed.
+                </p>
+                <div class="mb-2">
+                  <label for="gtt-tradingsymbol" class="form-label"
+                    >Trading Symbol</label
+                  >
+                  <input
+                    id="gtt-tradingsymbol"
+                    type="text"
+                    class="form-control"
+                    value="SBIN-EQ"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label for="gtt-symboltoken" class="form-label"
+                    >Symbol Token</label
+                  >
+                  <input
+                    id="gtt-symboltoken"
+                    type="text"
+                    class="form-control"
+                    value="3045"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label for="gtt-exchange" class="form-label"
+                    >Exchange</label
+                  >
+                  <input
+                    id="gtt-exchange"
+                    type="text"
+                    class="form-control"
+                    value="NSE"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label for="gtt-producttype" class="form-label"
+                    >Product Type</label
+                  >
+                  <input
+                    id="gtt-producttype"
+                    type="text"
+                    class="form-control"
+                    value="MARGIN"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label for="gtt-transactiontype" class="form-label"
+                    >Transaction Type (BUY/SELL)</label
+                  >
+                  <input
+                    id="gtt-transactiontype"
+                    type="text"
+                    class="form-control"
+                    value="BUY"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label for="gtt-price" class="form-label">Price</label>
+                  <input
+                    id="gtt-price"
+                    type="number"
+                    class="form-control"
+                    value="100000"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label for="gtt-qty" class="form-label">Quantity</label>
+                  <input
+                    id="gtt-qty"
+                    type="number"
+                    class="form-control"
+                    value="10"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label for="gtt-disclosedqty" class="form-label"
+                    >Disclosed Quantity</label
+                  >
+                  <input
+                    id="gtt-disclosedqty"
+                    type="number"
+                    class="form-control"
+                    value="10"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label for="gtt-triggerprice" class="form-label"
+                    >Trigger Price</label
+                  >
+                  <input
+                    id="gtt-triggerprice"
+                    type="number"
+                    class="form-control"
+                    value="200000"
+                  />
+                </div>
+                <div class="mb-2">
+                  <label for="gtt-timeperiod" class="form-label"
+                    >Time Period</label
+                  >
+                  <input
+                    id="gtt-timeperiod"
+                    type="number"
+                    class="form-control"
+                    value="365"
+                  />
+                </div>
 
-      <!-- AUTO TRADE (CONDITIONS) -->
-      <div class="row" id="sectionAutoTrade" >
-        <div class="col-lg-12">
-          <h1 class="text-center mb-4">Auto Trade Conditions</h1>
-          <div class="text-center mb-4">
-            <button class="btn btn-info" onclick="showConditions()">Show Conditions</button>
-            <div id="conditions-text" class="container" style="display: none;"></div>
+                <button
+                  class="btn btn-warning"
+                  onclick="createGttRule()"
+                >
+                  Create GTT Rule
+                </button>
+                <div id="gtt-create-response" class="response-box"></div>
+              </div>
+            </div>
           </div>
-          <div class="row">
+        </div>
+
+        <!-- LIST GTT -->
+        <div class="row mb-4" id="section4" style="display: none">
+          <div class="col-lg-12">
+            <div class="card custom-card">
+              <div class="card-body">
+                <h5 class="card-title">4. List GTT Rules</h5>
+                <button class="btn btn-info" onclick="listGttRules()">
+                  List GTT Rules
+                </button>
+                <div id="gtt-list-response" class="response-box"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROFILE -->
+        <div class="row mb-4" id="sectionProfile" style="display: none">
+          <div class="col-lg-12">
+            <div class="card custom-card">
+              <div class="card-body">
+                <h5 class="card-title">Profile</h5>
+                <button class="btn btn-info" onclick="fetchProfile()">
+                  Fetch Profile
+                </button>
+                <div
+                  id="profile-response"
+                  class="response-box"
+                  style="overflow-x: auto"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AUTO TRADE (CONDITIONS + NEW FEATURES) -->
+        <div class="row mb-4" id="sectionAutoTrade" style="display: none">
+          <div class="col-lg-12">
+            <h1 class="text-center mb-4">Auto Trade Conditions & New Features</h1>
+            <!-- Button to show Condition 1 & 2 text explanation -->
+            <div class="text-center mb-4">
+              <button class="btn btn-info" onclick="showConditions()">
+                Show Conditions
+              </button>
+              <div id="conditions-text" class="container" style="display: none"></div>
+            </div>
+
+            <div class="row">
               <!-- Condition 1 Box -->
               <div class="col-md-6 mb-4">
-           
-                  <div class="condition-box">
-                      <h5>Condition 1: Auto Trade</h5>
-                      <form>
-                          <div class="mb-3">
-                              <label for="c1-symbol" class="form-label">Symbol</label>
-                              <input type="text" id="c1-symbol" class="form-control" placeholder="Enter trading symbol (e.g., NIFTY50)" required>
-                          </div>
-                          <div class="mb-3">
-                              <label for="c1-quantity" class="form-label">Quantity</label>
-                              <input type="number" id="c1-quantity" class="form-control" placeholder="Enter quantity" required>
-                          </div>
-                          <div class="mb-3">
-                              <label for="c1-basis" class="form-label">Threshold Basis</label>
-                              <select id="c1-basis" class="form-select">
-                                  <option value="fixed">Fixed Price</option>
-                                  <option value="points">Points</option>
-                                  <option value="percentage">Percentage</option>
-                              </select>
-                          </div>
-                          <div class="mb-3">
-                              <label for="c1-threshold" class="form-label">Threshold Value</label>
-                              <input type="number" id="c1-threshold" class="form-control" placeholder="Enter threshold value" required>
-                          </div>
-                          <button type="button" class="btn btn-success w-100" onclick="startCondition1()">Start Condition 1</button>
-                      </form>
-                      <div id="condition1-response" class="response-box"></div>
-                  </div>
+                <div class="condition-box">
+                  <h5>Condition 1: Auto Trade</h5>
+                  <form>
+                    <div class="mb-3">
+                      <label for="c1-symbol" class="form-label">Symbol</label>
+                      <input
+                        type="text"
+                        id="c1-symbol"
+                        class="form-control"
+                        placeholder="Enter trading symbol (e.g., NIFTY50)"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="c1-quantity" class="form-label"
+                        >Quantity</label
+                      >
+                      <input
+                        type="number"
+                        id="c1-quantity"
+                        class="form-control"
+                        placeholder="Enter quantity"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="c1-basis" class="form-label"
+                        >Threshold Basis</label
+                      >
+                      <select id="c1-basis" class="form-select">
+                        <option value="fixed">Fixed Price</option>
+                        <option value="points">Points</option>
+                        <option value="percentage">Percentage</option>
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label for="c1-threshold" class="form-label"
+                        >Threshold Value</label
+                      >
+                      <input
+                        type="number"
+                        id="c1-threshold"
+                        class="form-control"
+                        placeholder="Enter threshold value"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-success w-100"
+                      onclick="startCondition1()"
+                    >
+                      Start Condition 1
+                    </button>
+                  </form>
+                  <div id="condition1-response" class="response-box"></div>
+                </div>
               </div>
 
               <!-- Condition 2 Box -->
               <div class="col-md-6 mb-4">
-                  <div class="condition-box">
-                      <h5>Condition 2: Auto Trade</h5>
-                      <form>
-                          <div class="mb-3">
-                              <label for="c2-symbol" class="form-label">Symbol</label>
-                              <input type="text" id="c2-symbol" class="form-control" placeholder="Enter trading symbol (e.g., NIFTY50)" required>
-                          </div>
-                          <div class="mb-3">
-                              <label for="c2-quantity" class="form-label">Quantity</label>
-                              <input type="number" id="c2-quantity" class="form-control" placeholder="Enter quantity" required>
-                          </div>
-                          <div class="mb-3">
-                              <label for="c2-basis" class="form-label">Threshold Basis</label>
-                              <select id="c2-basis" class="form-select">
-                                  <option value="fixed">Fixed Price</option>
-                                  <option value="points">Points</option>
-                                  <option value="percentage">Percentage</option>
-                              </select>
-                          </div>
-                          <div class="mb-3">
-                              <label for="c2-threshold" class="form-label">Threshold Value</label>
-                              <input type="number" id="c2-threshold" class="form-control" placeholder="Enter threshold value" required>
-                          </div>
-                          <div class="mb-3">
-                              <label for="c2-reference" class="form-label">Reference Price</label>
-                              <input type="number" id="c2-reference" class="form-control" placeholder="Enter reference price" required>
-                          </div>
-                          <button type="button" class="btn btn-primary w-100" onclick="startCondition2()">Start Condition 2</button>
-                      </form>
-                      <div id="condition2-response" class="response-box"></div>
-                  </div>
+                <div class="condition-box">
+                  <h5>Condition 2: Auto Trade</h5>
+                  <form>
+                    <div class="mb-3">
+                      <label for="c2-symbol" class="form-label">Symbol</label>
+                      <input
+                        type="text"
+                        id="c2-symbol"
+                        class="form-control"
+                        placeholder="Enter trading symbol (e.g., NIFTY50)"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="c2-quantity" class="form-label"
+                        >Quantity</label
+                      >
+                      <input
+                        type="number"
+                        id="c2-quantity"
+                        class="form-control"
+                        placeholder="Enter quantity"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="c2-basis" class="form-label"
+                        >Threshold Basis</label
+                      >
+                      <select id="c2-basis" class="form-select">
+                        <option value="fixed">Fixed Price</option>
+                        <option value="points">Points</option>
+                        <option value="percentage">Percentage</option>
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label for="c2-threshold" class="form-label"
+                        >Threshold Value</label
+                      >
+                      <input
+                        type="number"
+                        id="c2-threshold"
+                        class="form-control"
+                        placeholder="Enter threshold value"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="c2-reference" class="form-label"
+                        >Reference Price</label
+                      >
+                      <input
+                        type="number"
+                        id="c2-reference"
+                        class="form-control"
+                        placeholder="Enter reference price"
+                        required
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-primary w-100"
+                      onclick="startCondition2()"
+                    >
+                      Start Condition 2
+                    </button>
+                  </form>
+                  <div id="condition2-response" class="response-box"></div>
+                </div>
               </div>
+            </div>
+
+            <!-- ===== NEW FEATURES BELOW ===== -->
+
+            <!-- 1. Auto Trailing Stop Loss -->
+            <div class="condition-box">
+              <h5>Auto Trailing Stop Loss</h5>
+              <form>
+                <div class="mb-3">
+                  <label for="atsl-symbol" class="form-label">Symbol</label>
+                  <input
+                    type="text"
+                    id="atsl-symbol"
+                    class="form-control"
+                    placeholder="e.g. NIFTY"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="atsl-quantity" class="form-label"
+                    >Quantity</label
+                  >
+                  <input
+                    type="number"
+                    id="atsl-quantity"
+                    class="form-control"
+                    value="75"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="atsl-initialSL" class="form-label"
+                    >Initial SL (price or offset)</label
+                  >
+                  <input
+                    type="number"
+                    id="atsl-initialSL"
+                    class="form-control"
+                    value="100"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="atsl-basis" class="form-label"
+                    >Trailing Basis</label
+                  >
+                  <select id="atsl-basis" class="form-select">
+                    <option value="points">Points</option>
+                    <option value="price">Fixed Price</option>
+                    <option value="percentage">Percentage</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="atsl-trailValue" class="form-label"
+                    >Trail Value</label
+                  >
+                  <input
+                    type="number"
+                    id="atsl-trailValue"
+                    class="form-control"
+                    value="20"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="atsl-entryPrice" class="form-label"
+                    >Entry Price</label
+                  >
+                  <input
+                    type="number"
+                    id="atsl-entryPrice"
+                    class="form-control"
+                    value="150"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-success w-100"
+                  onclick="callAutoTrailingSL()"
+                >
+                  Start Auto Trailing SL
+                </button>
+              </form>
+              <div id="atsl-response" class="response-box"></div>
+            </div>
+
+            <!-- 2. Auto Trailing Buy -->
+            <div class="condition-box">
+              <h5>Auto Trailing Buy</h5>
+              <form>
+                <div class="mb-3">
+                  <label for="atb-symbol" class="form-label">Symbol</label>
+                  <input
+                    type="text"
+                    id="atb-symbol"
+                    class="form-control"
+                    placeholder="e.g. NIFTY"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="atb-quantity" class="form-label"
+                    >Quantity</label
+                  >
+                  <input
+                    type="number"
+                    id="atb-quantity"
+                    class="form-control"
+                    value="75"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="atb-basis" class="form-label"
+                    >Trailing Basis</label
+                  >
+                  <select id="atb-basis" class="form-select">
+                    <option value="points">Points</option>
+                    <option value="price">Fixed Price</option>
+                    <option value="percentage">Percentage</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="atb-triggerValue" class="form-label"
+                    >Trigger Value</label
+                  >
+                  <input
+                    type="number"
+                    id="atb-triggerValue"
+                    class="form-control"
+                    value="20"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="atb-refPrice" class="form-label"
+                    >Current Reference</label
+                  >
+                  <input
+                    type="number"
+                    id="atb-refPrice"
+                    class="form-control"
+                    value="150"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-success w-100"
+                  onclick="callAutoTrailingBuy()"
+                >
+                  Start Auto Trailing Buy
+                </button>
+              </form>
+              <div id="atb-response" class="response-box"></div>
+            </div>
+
+            <!-- 3. Single-Click Execute -->
+            <div class="condition-box">
+              <h5>Single-Click Execute</h5>
+              <form>
+                <div class="mb-3">
+                  <label for="sce-symbol" class="form-label">Symbol</label>
+                  <input
+                    type="text"
+                    id="sce-symbol"
+                    class="form-control"
+                    placeholder="e.g. NIFTY"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="sce-quantity" class="form-label"
+                    >Quantity</label
+                  >
+                  <input
+                    type="number"
+                    id="sce-quantity"
+                    class="form-control"
+                    value="75"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label
+                    for="sce-transactiontype"
+                    class="form-label"
+                    >Transaction Type</label
+                  >
+                  <select id="sce-transactiontype" class="form-select">
+                    <option value="BUY">BUY</option>
+                    <option value="SELL">SELL</option>
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-info w-100"
+                  onclick="callSingleClickExecute()"
+                >
+                  Execute Now
+                </button>
+              </form>
+              <div id="sce-response" class="response-box"></div>
+            </div>
+
+            <!-- 4. Two-Way Call/Put Switch -->
+            <div class="condition-box">
+              <h5>Two-Way Call & Put Switching</h5>
+              <form>
+                <div class="mb-3">
+                  <label for="tw-current" class="form-label"
+                    >Current Position</label
+                  >
+                  <select id="tw-current" class="form-select">
+                    <option value="CALL">CALL</option>
+                    <option value="PUT">PUT</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="tw-symbolcall" class="form-label"
+                    >Call Symbol</label
+                  >
+                  <input
+                    type="text"
+                    id="tw-symbolcall"
+                    class="form-control"
+                    value="NIFTY23OCTCALL"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="tw-symbolput" class="form-label"
+                    >Put Symbol</label
+                  >
+                  <input
+                    type="text"
+                    id="tw-symbolput"
+                    class="form-control"
+                    value="NIFTY23OCTPUT"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="tw-quantity" class="form-label"
+                    >Quantity</label
+                  >
+                  <input
+                    type="number"
+                    id="tw-quantity"
+                    class="form-control"
+                    value="75"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="tw-switchto" class="form-label"
+                    >Switch To</label
+                  >
+                  <select id="tw-switchto" class="form-select">
+                    <option value="CALL">CALL</option>
+                    <option value="PUT">PUT</option>
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-danger w-100"
+                  onclick="callTwoWaySwitch()"
+                >
+                  Switch Position
+                </button>
+              </form>
+              <div id="tw-response" class="response-box"></div>
+            </div>
+
+            <!-- 5. Stop Loss Variants -->
+            <div class="condition-box">
+              <h5>Stop Loss Variants</h5>
+              <form>
+                <div class="mb-3">
+                  <label for="slv-symbol" class="form-label">Symbol</label>
+                  <input
+                    type="text"
+                    id="slv-symbol"
+                    class="form-control"
+                    placeholder="e.g. NIFTY"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="slv-quantity" class="form-label"
+                    >Quantity</label
+                  >
+                  <input
+                    type="number"
+                    id="slv-quantity"
+                    class="form-control"
+                    value="75"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="slv-entryprice" class="form-label"
+                    >Entry Price</label
+                  >
+                  <input
+                    type="number"
+                    id="slv-entryprice"
+                    class="form-control"
+                    value="150"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="slv-type" class="form-label"
+                    >Stop Loss Type</label
+                  >
+                  <select id="slv-type" class="form-select">
+                    <option value="price">Fixed Price</option>
+                    <option value="points">Points</option>
+                    <option value="percentage">Percentage</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="slv-value" class="form-label"
+                    >Stop Loss Value</label
+                  >
+                  <input
+                    type="number"
+                    id="slv-value"
+                    class="form-control"
+                    value="10"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-warning w-100"
+                  onclick="callStopLossVariants()"
+                >
+                  Set Stop Loss
+                </button>
+              </form>
+              <div id="slv-response" class="response-box"></div>
+            </div>
+
+            <!-- 6. SL Loss Percentage Calculation -->
+            <div class="condition-box">
+              <h5>SL Loss Percentage Calculation</h5>
+              <form>
+                <div class="mb-3">
+                  <label for="slpct-entry" class="form-label"
+                    >Entry Price</label
+                  >
+                  <input
+                    type="number"
+                    id="slpct-entry"
+                    class="form-control"
+                    value="100"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="slpct-stoploss" class="form-label"
+                    >Stop Loss Price</label
+                  >
+                  <input
+                    type="number"
+                    id="slpct-stoploss"
+                    class="form-control"
+                    value="95"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-info w-100"
+                  onclick="callSlLossPercentage()"
+                >
+                  Calculate Loss %
+                </button>
+              </form>
+              <div id="slpct-response" class="response-box"></div>
+            </div>
+            <!-- END NEW FEATURES -->
+
           </div>
         </div>
       </div>
-    
-    </div>
 
-    <!-- RIGHT COLUMN: LIVE CHART -->
-    <div class="col-md-6">
-      <div id="chart-container">
-        <!-- TradingView chart will be injected here by JavaScript -->
+      <!-- RIGHT COLUMN: LIVE CHART -->
+      <div class="col-md-6">
+        <div id="chart-container">
+          <!-- TradingView chart will be injected here by JavaScript -->
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- FOOTER -->
-<footer>
+  <!-- FOOTER -->
+  <footer>
     <div class="container">
-        <p class="mb-0">
-            Angel One Trading Dashboard &mdash; Powered by <strong>Flask</strong> and <strong>Bootstrap</strong>
-        </p>
+      <p class="mb-0">
+        Angel One Trading Dashboard &mdash; Powered by
+        <strong>Flask</strong> and <strong>Bootstrap</strong>
+      </p>
     </div>
-</footer>
+  </footer>
 
-<!-- Bootstrap JS + Dependencies (Popper) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap JS + Dependencies (Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<script>
+  <script>
     // ========== GLOBAL VARIABLES ==========
     let authToken = null;
     let refreshToken = null;
-    // We'll keep a global chartWidget reference if needed
-    let chartWidget = null;
+    let chartWidget = null; // For TradingView chart
 
     // ========== PAGE NAVIGATION ==========
     function showSection(sectionId) {
-        // Hide all 'row.mb-4' and any additional sections we might have
-        const sections = document.querySelectorAll('.row.mb-4, #sectionAutoTrade, #sectionManualTrade, #sectionLogin');
-        sections.forEach(section => {
-            section.style.display = 'none';
-        });
+      // Hide all 'row.mb-4' as well as #sectionAutoTrade, #sectionManualTrade, #sectionLogin, etc.
+      const sections = document.querySelectorAll(
+        ".row.mb-4, #sectionAutoTrade, #sectionManualTrade, #sectionLogin"
+      );
+      sections.forEach((section) => {
+        section.style.display = "none";
+      });
 
-        // Show only the clicked section
-        const target = document.getElementById(sectionId);
-        if (target) {
-            target.style.display = 'block';
-            // Scroll to the section if desired
-            target.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            console.warn(`Section with ID ${sectionId} not found.`);
-        }
+      // Show the clicked section
+      const target = document.getElementById(sectionId);
+      if (target) {
+        target.style.display = "block";
+        target.scrollIntoView({ behavior: "smooth" });
+      } else {
+        console.warn(`Section with ID ${sectionId} not found.`);
+      }
     }
 
     // ========== LOGIN ==========
     function login() {
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-        const totp = document.getElementById("totp").value;
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const totp = document.getElementById("totp").value;
 
-        fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, totp })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("login-response");
-            resp.style.display = 'block'; // show response box
-            if (data.success) {
-                resp.textContent = "Login Successful!";
-                resp.style.color = "#008000"; // success in green
-                authToken = data.authToken;
-                refreshToken = data.refreshToken;
-            } else {
-                resp.textContent = data.message || "Login Failed!";
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("login-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
+      fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, totp }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("login-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = "Login Successful!";
+            resp.style.color = "#008000";
+            authToken = data.authToken;
+            refreshToken = data.refreshToken;
+          } else {
+            resp.textContent = data.message || "Login Failed!";
             resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("login-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
         });
     }
 
     // ========== MANUAL TRADE ==========
     function performManualTrade() {
-      const symbol = document.getElementById("manual-symbol").value.trim();
+      const symbol = document
+        .getElementById("manual-symbol")
+        .value.trim();
       const quantity = document.getElementById("manual-quantity").value;
-      const transactionType = document.getElementById("manual-transaction").value;
+      const transactionType = document.getElementById(
+        "manual-transaction"
+      ).value;
 
-      // Update the chart with the new symbol (e.g., "NSE:SBIN" if needed)
       if (symbol) {
         updateLiveChart(symbol);
       }
 
-      // Fake call or real call to place a manual trade
-      fetch('/api/manual_trade', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol, quantity, transactionType, authToken, refreshToken })
+      fetch("/api/manual_trade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol,
+          quantity,
+          transactionType,
+          authToken,
+          refreshToken,
+        }),
       })
-      .then(res => res.json())
-      .then(data => {
+        .then((res) => res.json())
+        .then((data) => {
           const resp = document.getElementById("manual-trade-response");
-          resp.style.display = 'block';
+          resp.style.display = "block";
           if (data.success) {
-              resp.textContent = "Manual trade executed successfully!";
-              resp.style.color = "#008000";
+            resp.textContent = "Manual trade executed successfully!";
+            resp.style.color = "#008000";
           } else {
-              resp.textContent = "Manual trade failed: " + (data.message || JSON.stringify(data));
-              resp.style.color = "red";
+            resp.textContent =
+              "Manual trade failed: " + (data.message || JSON.stringify(data));
+            resp.style.color = "red";
           }
-      })
-      .catch(err => {
+        })
+        .catch((err) => {
           const resp = document.getElementById("manual-trade-response");
-          resp.style.display = 'block';
+          resp.style.display = "block";
           resp.textContent = "Error: " + err;
           resp.style.color = "red";
-      });
+        });
     }
 
     // ========== PLACE ORDER (DEMO) ==========
     function placeOrder() {
-        const orderParams = {
-            variety: document.getElementById("order-variety").value,
-            tradingsymbol: document.getElementById("order-tradingsymbol").value,
-            symboltoken: document.getElementById("order-symboltoken").value,
-            transactiontype: document.getElementById("order-transactiontype").value,
-            exchange: document.getElementById("order-exchange").value,
-            ordertype: document.getElementById("order-ordertype").value,
-            producttype: document.getElementById("order-producttype").value,
-            duration: document.getElementById("order-duration").value,
-            price: document.getElementById("order-price").value,
-            squareoff: "0",
-            stoploss: "0",
-            quantity: document.getElementById("order-quantity").value
-        };
+      const orderParams = {
+        variety: document.getElementById("order-variety").value,
+        tradingsymbol: document.getElementById("order-tradingsymbol").value,
+        symboltoken: document.getElementById("order-symboltoken").value,
+        transactiontype: document.getElementById(
+          "order-transactiontype"
+        ).value,
+        exchange: document.getElementById("order-exchange").value,
+        ordertype: document.getElementById("order-ordertype").value,
+        producttype: document.getElementById("order-producttype").value,
+        duration: document.getElementById("order-duration").value,
+        price: document.getElementById("order-price").value,
+        squareoff: "0",
+        stoploss: "0",
+        quantity: document.getElementById("order-quantity").value,
+      };
 
-        // Potentially update chart if user changes the symbol
-        const chartSymbol = orderParams.tradingsymbol || '';
-        if (chartSymbol) {
-            updateLiveChart(chartSymbol);
-        }
+      const chartSymbol = orderParams.tradingsymbol || "";
+      if (chartSymbol) {
+        updateLiveChart(chartSymbol);
+      }
 
-        fetch('/api/place_order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderParams, authToken, refreshToken })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("order-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = "Order placed! ID: " + data.orderid;
-                resp.style.color = "#008000";
-            } else {
-                resp.textContent = "Order failed! " + JSON.stringify(data);
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("order-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
+      fetch("/api/place_order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderParams, authToken, refreshToken }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("order-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = "Order placed! ID: " + data.orderid;
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent = "Order failed! " + JSON.stringify(data);
             resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("order-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
         });
     }
 
     // ========== CREATE GTT RULE ==========
     function createGttRule() {
-        const gttParams = {
-            tradingsymbol: document.getElementById("gtt-tradingsymbol").value,
-            symboltoken: document.getElementById("gtt-symboltoken").value,
-            exchange: document.getElementById("gtt-exchange").value,
-            producttype: document.getElementById("gtt-producttype").value,
-            transactiontype: document.getElementById("gtt-transactiontype").value,
-            price: parseFloat(document.getElementById("gtt-price").value),
-            qty: parseInt(document.getElementById("gtt-qty").value),
-            disclosedqty: parseInt(document.getElementById("gtt-disclosedqty").value),
-            triggerprice: parseFloat(document.getElementById("gtt-triggerprice").value),
-            timeperiod: parseInt(document.getElementById("gtt-timeperiod").value),
-        };
+      const gttParams = {
+        tradingsymbol: document.getElementById("gtt-tradingsymbol").value,
+        symboltoken: document.getElementById("gtt-symboltoken").value,
+        exchange: document.getElementById("gtt-exchange").value,
+        producttype: document.getElementById("gtt-producttype").value,
+        transactiontype: document.getElementById(
+          "gtt-transactiontype"
+        ).value,
+        price: parseFloat(document.getElementById("gtt-price").value),
+        qty: parseInt(document.getElementById("gtt-qty").value),
+        disclosedqty: parseInt(
+          document.getElementById("gtt-disclosedqty").value
+        ),
+        triggerprice: parseFloat(
+          document.getElementById("gtt-triggerprice").value
+        ),
+        timeperiod: parseInt(document.getElementById("gtt-timeperiod").value),
+      };
 
-        // Possibly update chart to reflect GTT symbol
-        if (gttParams.tradingsymbol) {
-            updateLiveChart(gttParams.tradingsymbol);
-        }
+      if (gttParams.tradingsymbol) {
+        updateLiveChart(gttParams.tradingsymbol);
+      }
 
-        fetch('/api/create_gtt_rule', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ gttParams, authToken, refreshToken })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("gtt-create-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = "GTT Rule created! ID: " + data.rule_id;
-                resp.style.color = "#008000";
-            } else {
-                resp.textContent = "GTT creation failed! " + JSON.stringify(data);
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("gtt-create-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
+      fetch("/api/create_gtt_rule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gttParams, authToken, refreshToken }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("gtt-create-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = "GTT Rule created! ID: " + data.rule_id;
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent =
+              "GTT creation failed! " + JSON.stringify(data);
             resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("gtt-create-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
         });
     }
 
     // ========== LIST GTT ==========
     function listGttRules() {
-        fetch('/api/list_gtt_rules', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ authToken, refreshToken })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("gtt-list-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = "GTT Rules:\n" + JSON.stringify(data.gtt_list, null, 2);
-                resp.style.color = "#008000";
-            } else {
-                resp.textContent = "Failed to list GTT rules! " + JSON.stringify(data);
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("gtt-list-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
+      fetch("/api/list_gtt_rules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ authToken, refreshToken }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("gtt-list-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent =
+              "GTT Rules:\n" +
+              JSON.stringify(data.gtt_list, null, 2);
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent =
+              "Failed to list GTT rules! " + JSON.stringify(data);
             resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("gtt-list-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
         });
     }
 
     // ========== FETCH PROFILE ==========
     function fetchProfile() {
-        if (!refreshToken) {
-            const resp = document.getElementById("profile-response");
-            resp.style.display = 'block';
-            resp.textContent = "You need to log in first!";
-            resp.style.color = "red";
-            return;
-        }
+      if (!refreshToken) {
+        const resp = document.getElementById("profile-response");
+        resp.style.display = "block";
+        resp.textContent = "You need to log in first!";
+        resp.style.color = "red";
+        return;
+      }
 
-        fetch('/api/get_profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refreshToken })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("profile-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                const profile = data.profile;
-                let tableHTML = `
-                    <table class="table table-bordered table-striped" style="color:#000;">
-                        <tr><th>Field</th><th>Value</th></tr>
-                        <tr><td>Client Code</td><td>${profile.clientcode}</td></tr>
-                        <tr><td>Name</td><td>${profile.name}</td></tr>
-                        <tr><td>Email</td><td>${profile.email}</td></tr>
-                        <tr><td>Mobile Number</td><td>${profile.mobileno}</td></tr>
-                        <tr><td>Exchanges</td><td>${profile.exchanges}</td></tr>
-                        <tr><td>Products</td><td>${profile.products}</td></tr>
-                        <tr><td>Last Login Time</td><td>${profile.lastlogintime || "N/A"}</td></tr>
-                        <tr><td>Broker ID</td><td>${profile.brokerid}</td></tr>
-                    </table>
-                `;
-                resp.innerHTML = tableHTML;
-                resp.style.color = "black";
-            } else {
-                resp.textContent = `Failed to fetch profile: ${data.error}`;
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("profile-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
+      fetch("/api/get_profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("profile-response");
+          resp.style.display = "block";
+          if (data.success) {
+            const profile = data.profile;
+            let tableHTML = `
+              <table class="table table-bordered table-striped" style="color:#000;">
+                <tr><th>Field</th><th>Value</th></tr>
+                <tr><td>Client Code</td><td>${profile.clientcode}</td></tr>
+                <tr><td>Name</td><td>${profile.name}</td></tr>
+                <tr><td>Email</td><td>${profile.email}</td></tr>
+                <tr><td>Mobile Number</td><td>${profile.mobileno}</td></tr>
+                <tr><td>Exchanges</td><td>${profile.exchanges}</td></tr>
+                <tr><td>Products</td><td>${profile.products}</td></tr>
+                <tr><td>Last Login Time</td><td>${
+                  profile.lastlogintime || "N/A"
+                }</td></tr>
+                <tr><td>Broker ID</td><td>${profile.brokerid}</td></tr>
+              </table>
+            `;
+            resp.innerHTML = tableHTML;
+            resp.style.color = "black";
+          } else {
+            resp.textContent = `Failed to fetch profile: ${data.error}`;
             resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("profile-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
         });
     }
 
-    // ========== AUTO TRADE FUNCTIONS (Conditions) ==========
+    // ========== AUTO TRADE CONDITIONS (EXISTING) ==========
     function showConditions() {
-    const textElement = document.getElementById("conditions-text");
-    textElement.innerHTML = `
+      const textElement = document.getElementById("conditions-text");
+      textElement.innerHTML = `
         <div class="row">
-            <div class="col-md-6">
-                <div class="condition-box">
-                    <h5>Condition 1</h5>
-                    <p>Auto-trade when the market price matches or exceeds a specified threshold based on fixed price, points, or percentage.</p>
-                </div>
+          <div class="col-md-6">
+            <div class="condition-box">
+              <h5>Condition 1</h5>
+              <p>
+                Auto-trade when the market price matches or exceeds a specified
+                threshold based on fixed price, points, or percentage.
+              </p>
             </div>
-            <div class="col-md-6">
-                <div class="condition-box">
-                    <h5>Condition 2</h5>
-                    <p>Auto-trade when the live market price is greater than a reference price plus a specified threshold based on points or percentage.</p>
-                </div>
+          </div>
+          <div class="col-md-6">
+            <div class="condition-box">
+              <h5>Condition 2</h5>
+              <p>
+                Auto-trade when the live market price is greater than a reference
+                price plus a specified threshold based on points or percentage.
+              </p>
             </div>
+          </div>
         </div>
-    `;
-    textElement.style.display = "block";
-}
+      `;
+      textElement.style.display = "block";
+    }
 
-
-    // Condition 1
     function startCondition1() {
-        const symbol = document.getElementById("c1-symbol").value.trim();
-        const quantity = parseInt(document.getElementById("c1-quantity").value);
-        const basis = document.getElementById("c1-basis").value;
-        const threshold = parseFloat(document.getElementById("c1-threshold").value);
+      const symbol = document.getElementById("c1-symbol").value.trim();
+      const quantity = parseInt(
+        document.getElementById("c1-quantity").value
+      );
+      const basis = document.getElementById("c1-basis").value;
+      const threshold = parseFloat(
+        document.getElementById("c1-threshold").value
+      );
 
-        // Update chart
-        if (symbol) {
-            updateLiveChart(symbol);
-        }
+      if (symbol) {
+        updateLiveChart(symbol);
+      }
 
-        fetch('/api/auto_trade_condition1', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ symbol, quantity, basis, threshold, authToken })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("condition1-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = "Condition 1 started successfully!";
-                resp.style.color = "#008000";
-            } else {
-                resp.textContent = "Error: " + (data.message || "Failed");
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("condition1-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
+      fetch("/api/auto_trade_condition1", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symbol, quantity, basis, threshold, authToken }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("condition1-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = "Condition 1 started successfully!";
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent = "Error: " + (data.message || "Failed");
             resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("condition1-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
         });
     }
 
-    // Condition 2
     function startCondition2() {
-        const symbol = document.getElementById("c2-symbol").value.trim();
-        const quantity = parseInt(document.getElementById("c2-quantity").value);
-        const basis = document.getElementById("c2-basis").value;
-        const threshold = parseFloat(document.getElementById("c2-threshold").value);
-        const reference = parseFloat(document.getElementById("c2-reference").value);
+      const symbol = document.getElementById("c2-symbol").value.trim();
+      const quantity = parseInt(
+        document.getElementById("c2-quantity").value
+      );
+      const basis = document.getElementById("c2-basis").value;
+      const threshold = parseFloat(
+        document.getElementById("c2-threshold").value
+      );
+      const reference = parseFloat(
+        document.getElementById("c2-reference").value
+      );
 
-        // Update chart
-        if (symbol) {
-            updateLiveChart(symbol);
-        }
+      if (symbol) {
+        updateLiveChart(symbol);
+      }
 
-        fetch('/api/auto_trade_condition2', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ symbol, quantity, basis, threshold, reference, authToken })
-        })
-        .then(res => res.json())
-        .then(data => {
-            const resp = document.getElementById("condition2-response");
-            resp.style.display = 'block';
-            if (data.success) {
-                resp.textContent = "Condition 2 started successfully!";
-                resp.style.color = "#008000";
-            } else {
-                resp.textContent = "Error: " + (data.message || "Failed");
-                resp.style.color = "red";
-            }
-        })
-        .catch(err => {
-            const resp = document.getElementById("condition2-response");
-            resp.style.display = 'block';
-            resp.textContent = "Error: " + err;
+      fetch("/api/auto_trade_condition2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol,
+          quantity,
+          basis,
+          threshold,
+          reference,
+          authToken,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("condition2-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = "Condition 2 started successfully!";
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent = "Error: " + (data.message || "Failed");
             resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("condition2-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
         });
     }
 
     // ========== TRADINGVIEW CHART LOGIC ==========
     function updateLiveChart(symbolInput) {
-    let symbol = symbolInput.toUpperCase().includes(':') ? symbolInput : "NSE:" + symbolInput.toUpperCase();
+      let symbol = symbolInput.toUpperCase().includes(":")
+        ? symbolInput
+        : "NSE:" + symbolInput.toUpperCase();
 
-    if (chartWidget) {
+      if (chartWidget) {
         chartWidget.remove();
-    }
+      }
 
-    chartWidget = new TradingView.widget({
+      chartWidget = new TradingView.widget({
         symbol: symbol,
         interval: "5",
         timezone: "Asia/Kolkata",
@@ -979,16 +1655,286 @@
         allow_symbol_change: true,
         container_id: "chart-container",
         width: "100%",
-        height: 1000, // Match this with the CSS height
+        height: 1000, // match CSS
+      });
+    }
+
+    // ========== NEW FEATURE JS CALLS ==========
+
+    // 1. Auto Trailing Stop Loss
+    function callAutoTrailingSL() {
+      const symbol = document.getElementById("atsl-symbol").value.trim();
+      const quantity = parseInt(
+        document.getElementById("atsl-quantity").value
+      );
+      const initial_sl = parseFloat(
+        document.getElementById("atsl-initialSL").value
+      );
+      const trailing_basis = document.getElementById("atsl-basis").value;
+      const trail_value = parseFloat(
+        document.getElementById("atsl-trailValue").value
+      );
+      const entry_price = parseFloat(
+        document.getElementById("atsl-entryPrice").value
+      );
+
+      if (symbol) {
+        updateLiveChart(symbol);
+      }
+
+      fetch("/api/auto_trailing_stop_loss", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol,
+          quantity,
+          initial_sl,
+          trailing_basis,
+          trail_value,
+          entry_price,
+          authToken,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("atsl-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = data.message || "Auto Trailing SL Started";
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent = data.message || "Error starting auto trailing SL";
+            resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("atsl-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
+        });
+    }
+
+    // 2. Auto Trailing Buy
+    function callAutoTrailingBuy() {
+      const symbol = document.getElementById("atb-symbol").value.trim();
+      const quantity = parseInt(document.getElementById("atb-quantity").value);
+      const trailing_basis = document.getElementById("atb-basis").value;
+      const trigger_value = parseFloat(
+        document.getElementById("atb-triggerValue").value
+      );
+      const current_reference = parseFloat(
+        document.getElementById("atb-refPrice").value
+      );
+
+      if (symbol) {
+        updateLiveChart(symbol);
+      }
+
+      fetch("/api/auto_trailing_buy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol,
+          quantity,
+          trailing_basis,
+          trigger_value,
+          current_reference,
+          authToken,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("atb-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = data.message || "Auto Trailing Buy Started";
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent = data.message || "Error in auto trailing buy";
+            resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("atb-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
+        });
+    }
+
+    // 3. Single-Click Execute
+    function callSingleClickExecute() {
+      const symbol = document.getElementById("sce-symbol").value.trim();
+      const quantity = parseInt(
+        document.getElementById("sce-quantity").value
+      );
+      const transactiontype = document.getElementById(
+        "sce-transactiontype"
+      ).value;
+
+      if (symbol) {
+        updateLiveChart(symbol);
+      }
+
+      fetch("/api/single_click_execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol,
+          quantity,
+          transactiontype,
+          authToken,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("sce-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = data.message || "Trade executed";
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent = data.message || "Error in single-click execute";
+            resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("sce-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
+        });
+    }
+
+    // 4. Two-Way Call/Put Switch
+    function callTwoWaySwitch() {
+      const current_position = document.getElementById("tw-current").value;
+      const symbol_call = document.getElementById("tw-symbolcall").value;
+      const symbol_put = document.getElementById("tw-symbolput").value;
+      const quantity = parseInt(document.getElementById("tw-quantity").value);
+      const switch_to = document.getElementById("tw-switchto").value;
+
+      fetch("/api/two_way_switch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          current_position,
+          symbol_call,
+          symbol_put,
+          quantity,
+          switch_to,
+          authToken,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("tw-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = data.message || "Switched position";
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent = data.message || "Error in two-way switch";
+            resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("tw-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
+        });
+    }
+
+    // 5. Stop Loss Variants
+    function callStopLossVariants() {
+      const symbol = document.getElementById("slv-symbol").value.trim();
+      const quantity = parseInt(
+        document.getElementById("slv-quantity").value
+      );
+      const entry_price = parseFloat(
+        document.getElementById("slv-entryprice").value
+      );
+      const stop_loss_type = document.getElementById("slv-type").value;
+      const stop_loss_value = parseFloat(
+        document.getElementById("slv-value").value
+      );
+
+      if (symbol) {
+        updateLiveChart(symbol);
+      }
+
+      fetch("/api/stop_loss_variants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol,
+          quantity,
+          entry_price,
+          stop_loss_type,
+          stop_loss_value,
+          authToken,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("slv-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = data.message || "Stop loss set";
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent = data.message || "Error in stop loss variants";
+            resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("slv-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
+        });
+    }
+
+    // 6. SL Loss Percentage Calculation
+    function callSlLossPercentage() {
+      const entry_price = parseFloat(
+        document.getElementById("slpct-entry").value
+      );
+      const stop_loss_price = parseFloat(
+        document.getElementById("slpct-stoploss").value
+      );
+
+      fetch("/api/calculate_sl_loss_percentage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entry_price, stop_loss_price, authToken }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const resp = document.getElementById("slpct-response");
+          resp.style.display = "block";
+          if (data.success) {
+            resp.textContent = `Loss %: ${data.loss_percentage}% (from entry=${data.entry_price} to SL=${data.stop_loss_price})`;
+            resp.style.color = "#008000";
+          } else {
+            resp.textContent = data.message || "Error calculating SL %";
+            resp.style.color = "red";
+          }
+        })
+        .catch((err) => {
+          const resp = document.getElementById("slpct-response");
+          resp.style.display = "block";
+          resp.textContent = "Error: " + err;
+          resp.style.color = "red";
+        });
+    }
+
+    // Initialize a default chart on page load
+    window.addEventListener("DOMContentLoaded", () => {
+      updateLiveChart("NIFTY"); // Default chart
     });
-}
-
-
-    // Initialize a default chart (e.g., NIFTY) on page load
-    window.addEventListener('DOMContentLoaded', () => {
-        updateLiveChart("NIFTY"); // Default chart symbol on load
-    });
-</script>
-
+  </script>
 </body>
 </html>
