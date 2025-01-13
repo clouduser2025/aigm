@@ -1,5 +1,11 @@
+# ========================================
+# BACKEND (app.py)
+# ========================================
+
 from flask import Flask, request, jsonify, render_template, url_for
 import pyotp
+import time
+from threading import Thread
 from logzero import logger
 import http.client  # For making HTTP requests (if needed)
 import json         # For parsing and generating JSON data
@@ -7,32 +13,42 @@ import json         # For parsing and generating JSON data
 # -------------------------------------------------------------------------
 # SMART API (Angel One)
 # -------------------------------------------------------------------------
-# Ensure you install the correct SmartAPI library:
 # pip install smartapi-python
-from SmartApi.smartConnect import SmartConnect
+try:
+    from SmartApi.smartConnect import SmartConnect
+except ImportError:
+    logger.warning("SmartConnect library not found; only for demonstration.")
+    SmartConnect = None
 
 # Replace these with your actual credentials
-api_key = 'y2gLEdxZ'
-username = 'A62128571'
-pwd = '0852'
+API_KEY = 'y2gLEdxZ'
+USERNAME = 'A62128571'
+PASSWORD = '0852'
+
 
 # If you have a TOTP secret from Angel One, provide it here;
 # otherwise, your `login_to_api()` might rely on a user-provided TOTP each time.
 # totp_secret = 'YOUR_TOTP_SECRET'
 
-smartApi = SmartConnect(api_key=api_key)
-
 app = Flask(__name__)
-# Global flag to manage auto-trading
-stop_auto_trade_flag = [False]  # Using a mutable list for shared access
+
+# In-memory references
+smartApi = None
+authToken = None
+refreshToken = None
+
+# For demonstration, we create placeholders. In real usage, instantiate properly.
+if SmartConnect:
+    smartApi = SmartConnect(api_key=API_KEY)
+
+# We track a global flag for stopping the trailing stop-loss thread
+stop_trailing_stop_flag = [False]  # using list for mutable reference
 
 # -------------------------------------------------------------------------
 # HELPER FUNCTIONS
 # -------------------------------------------------------------------------
 def generate_totp(token):
-    """
-    Generate TOTP code using a provided token (i.e., the string/secret from your QR code).
-    """
+    """Generate TOTP code using a provided token (i.e., from QR code)."""
     try:
         totp = pyotp.TOTP(token).now()
         return totp
@@ -43,10 +59,15 @@ def generate_totp(token):
 def login_to_api(username, password, token):
     """
     Log in to the Smart API using credentials and a TOTP.
-    Returns (authToken, refreshToken) upon success, or None if fails.
+    Returns (authToken, refreshToken) on success, or None on failure.
     """
+    global smartApi
+    if smartApi is None:
+        logger.warning("No SmartConnect instance available; skipping real login.")
+        # Return mock tokens for demo
+        return "demoAuthToken", "demoRefreshToken"
+
     try:
-        # Generate the 6-digit TOTP from the secret
         totp_code = generate_totp(token)
         data = smartApi.generateSession(username, password, totp_code)
         
@@ -64,9 +85,14 @@ def login_to_api(username, password, token):
 
 def place_order(orderparams):
     """
-    Place an order with given order parameters.
+    Place an order with given order parameters (dict).
     Returns the order ID on success, or None on failure.
     """
+    global smartApi
+    if smartApi is None:
+        logger.warning("No SmartConnect instance available; skipping real placeOrder.")
+        return "demoOrderID"
+
     try:
         orderid = smartApi.placeOrder(orderparams)
         logger.info(f"Order placed successfully: {orderid}")
@@ -80,6 +106,11 @@ def create_gtt_rule(gttCreateParams):
     Create a GTT rule with the given parameters.
     Returns the GTT rule ID on success, or None on failure.
     """
+    global smartApi
+    if smartApi is None:
+        logger.warning("No SmartConnect instance available; skipping real gttCreateRule.")
+        return "demoGTTID"
+
     try:
         rule_id = smartApi.gttCreateRule(gttCreateParams)
         logger.info(f"The GTT rule id is: {rule_id}")
@@ -89,9 +120,12 @@ def create_gtt_rule(gttCreateParams):
         return None
 
 def list_gtt_rules():
-    """
-    List GTT rules. Returns the GTT list data, or None on failure.
-    """
+    """ List GTT rules. Returns the GTT list data, or None on failure."""
+    global smartApi
+    if smartApi is None:
+        logger.warning("No SmartConnect instance available; skipping real gttLists.")
+        return {"status": True, "message": "Demo GTT List", "data": []}
+
     try:
         status = ["FORALL"]
         page = 1
@@ -102,6 +136,25 @@ def list_gtt_rules():
         logger.exception(f"GTT Rule List failed: {e}")
         return None
 
+def fetch_live_price(symbol):
+    """
+    Fetches live price for a symbol from the Smart API or returns a dummy price for demo.
+    """
+    global smartApi
+    if smartApi is None:
+        logger.warning(f"No SmartConnect instance; returning a dummy live price for {symbol}.")
+        import random
+        return 100 + random.uniform(-10, 10)  # random around 100 for demo
+
+    try:
+        # example: smartApi.ltpData("NSE", "SBIN")
+        # Note: The arguments might vary depending on the library version
+        ltp_data = smartApi.ltpData("NSE", symbol)
+        return float(ltp_data['data']['ltp'])
+    except Exception as e:
+        logger.error(f"Error fetching live price for {symbol}: {e}")
+        return None
+
 
 # -------------------------------------------------------------------------
 # FLASK ROUTES
@@ -109,176 +162,840 @@ def list_gtt_rules():
 @app.route('/', methods=['GET'])
 def index():
     """
-    Serves the main HTML page (index.html) from the 'templates' directory.
+    Serves a combined HTML/JS from below for demonstration.
+    You can split into templates if you prefer.
     """
-    return render_template('index.html')
+    return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Angel One Trading Dashboard (Trailing Stop-Loss Demo)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <style>
+        body {
+            background: radial-gradient(circle, #ffffff 30%, #f9f9f9 100%);
+            margin: 0; padding: 0;
+        }
+        .navbar {
+            background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+            padding: 20px 30px;
+            box-shadow: 0 4px 10px rgba(255, 253, 255, 0.4);
+            border-bottom: 2px solid #007bff;
+        }
+        .navbar-brand {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .container-buttons button {
+            margin: 5px;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(90deg, #228B22, #FF0000);
+            animation: gradient-flow 4s infinite, button-glow 2s infinite alternate;
+            background-size: 200% 200%;
+        }
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes button-glow {
+            0% { box-shadow: 0 0 10px rgba(34, 139, 34, 0.7); }
+            100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
+        }
+        .response-box {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #chart-container {
+            width: 100%; height: 700px;
+            border: 1px solid #008000;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            background-color: #ffffff;
+            margin-top: 20px;
+        }
+        footer {
+            background: #fff;
+            color: #000;
+            padding: 20px;
+            text-align: center;
+            border-top: 2px solid #FF2C2C;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <span class="navbar-brand">Angel One Trading Dashboard</span>
+</nav>
 
+<div class="container mt-3">
+    <div class="container-buttons d-flex flex-wrap">
+        <button onclick="showSection('loginSection')">Login</button>
+        <button onclick="showSection('manualTradeSection')">Manual Trade</button>
+        <button onclick="showSection('placeOrderSection')">Place Order (Demo)</button>
+        <button onclick="showSection('gttSection')">Create GTT</button>
+        <button onclick="showSection('listGttSection')">List GTT</button>
+        <button onclick="showSection('profileSection')">Profile</button>
+        <button onclick="showSection('autoTradeSection')">Auto Trade (Buy)</button>
+        <button onclick="showSection('autoStopLossSection')">Auto Stop-Loss Sell</button>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- LEFT SIDE SECTIONS -->
+        <div class="col-md-6">
+
+            <!-- LOGIN -->
+            <div id="loginSection" style="display:none; padding: 10px;">
+                <h4>Login</h4>
+                <div class="mb-3">
+                    <label>Username:</label>
+                    <input type="text" id="username" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>Password:</label>
+                    <input type="password" id="password" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label>TOTP Secret:</label>
+                    <input type="text" id="totp" class="form-control">
+                </div>
+                <button class="btn btn-primary" onclick="login()">Login</button>
+                <div id="login-response" class="response-box"></div>
+            </div>
+
+            <!-- MANUAL TRADE -->
+            <div id="manualTradeSection" style="display:none; padding: 10px;">
+                <h4>Manual Trade</h4>
+                <div class="mb-3">
+                    <label>Symbol:</label>
+                    <input type="text" id="manual-symbol" class="form-control" placeholder="e.g. SBIN">
+                </div>
+                <div class="mb-3">
+                    <label>Quantity:</label>
+                    <input type="number" id="manual-quantity" class="form-control" value="1">
+                </div>
+                <div class="mb-3">
+                    <label>Transaction Type:</label>
+                    <select id="manual-transaction" class="form-select">
+                        <option value="BUY">Buy</option>
+                        <option value="SELL">Sell</option>
+                    </select>
+                </div>
+                <button class="btn btn-success" onclick="performManualTrade()">Execute Manual Trade</button>
+                <div id="manual-trade-response" class="response-box"></div>
+            </div>
+
+            <!-- PLACE ORDER DEMO -->
+            <div id="placeOrderSection" style="display:none; padding: 10px;">
+                <h4>Place Order (Demo)</h4>
+                <div class="mb-2">
+                    <label>Variety:</label>
+                    <select id="order-variety" class="form-select">
+                        <option value="NORMAL">NORMAL</option>
+                        <option value="STOPLOSS">STOPLOSS</option>
+                        <option value="AMO">AMO</option>
+                        <option value="ROBO">ROBO</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label>Trading Symbol:</label>
+                    <input type="text" id="order-tradingsymbol" class="form-control" value="SBIN-EQ">
+                </div>
+                <div class="mb-2">
+                    <label>Symbol Token:</label>
+                    <input type="text" id="order-symboltoken" class="form-control" value="3045">
+                </div>
+                <div class="mb-2">
+                    <label>Transaction Type:</label>
+                    <select id="order-transactiontype" class="form-select">
+                        <option value="BUY">BUY</option>
+                        <option value="SELL">SELL</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label>Exchange:</label>
+                    <select id="order-exchange" class="form-select">
+                        <option value="NSE">NSE</option>
+                        <option value="BSE">BSE</option>
+                        <option value="NFO">NFO</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label>Order Type:</label>
+                    <select id="order-ordertype" class="form-select">
+                        <option value="MARKET">MARKET</option>
+                        <option value="LIMIT">LIMIT</option>
+                        <option value="STOPLOSS_LIMIT">STOPLOSS_LIMIT</option>
+                        <option value="STOPLOSS_MARKET">STOPLOSS_MARKET</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label>Product Type:</label>
+                    <select id="order-producttype" class="form-select">
+                        <option value="DELIVERY">DELIVERY</option>
+                        <option value="CARRYFORWARD">CARRYFORWARD</option>
+                        <option value="MARGIN">MARGIN</option>
+                        <option value="INTRADAY">INTRADAY</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label>Duration:</label>
+                    <select id="order-duration" class="form-select">
+                        <option value="DAY">DAY</option>
+                        <option value="IOC">IOC</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label>Price:</label>
+                    <input type="text" id="order-price" class="form-control" value="19500">
+                </div>
+                <div class="mb-2">
+                    <label>Quantity:</label>
+                    <input type="text" id="order-quantity" class="form-control" value="1">
+                </div>
+                <button class="btn btn-success" onclick="placeOrder()">Place Order</button>
+                <div id="order-response" class="response-box"></div>
+            </div>
+
+            <!-- CREATE GTT -->
+            <div id="gttSection" style="display:none; padding: 10px;">
+                <h4>Create GTT Rule</h4>
+                <div class="mb-2">
+                    <label>Trading Symbol:</label>
+                    <input type="text" id="gtt-tradingsymbol" class="form-control" value="SBIN-EQ">
+                </div>
+                <div class="mb-2">
+                    <label>Symbol Token:</label>
+                    <input type="text" id="gtt-symboltoken" class="form-control" value="3045">
+                </div>
+                <div class="mb-2">
+                    <label>Exchange:</label>
+                    <input type="text" id="gtt-exchange" class="form-control" value="NSE">
+                </div>
+                <div class="mb-2">
+                    <label>Product Type:</label>
+                    <input type="text" id="gtt-producttype" class="form-control" value="MARGIN">
+                </div>
+                <div class="mb-2">
+                    <label>Transaction Type:</label>
+                    <input type="text" id="gtt-transactiontype" class="form-control" value="BUY">
+                </div>
+                <div class="mb-2">
+                    <label>Price:</label>
+                    <input type="number" id="gtt-price" class="form-control" value="100000">
+                </div>
+                <div class="mb-2">
+                    <label>Qty:</label>
+                    <input type="number" id="gtt-qty" class="form-control" value="10">
+                </div>
+                <div class="mb-2">
+                    <label>Disclosed Qty:</label>
+                    <input type="number" id="gtt-disclosedqty" class="form-control" value="10">
+                </div>
+                <div class="mb-2">
+                    <label>Trigger Price:</label>
+                    <input type="number" id="gtt-triggerprice" class="form-control" value="200000">
+                </div>
+                <div class="mb-2">
+                    <label>Time Period:</label>
+                    <input type="number" id="gtt-timeperiod" class="form-control" value="365">
+                </div>
+                <button class="btn btn-warning" onclick="createGttRule()">Create GTT</button>
+                <div id="gtt-create-response" class="response-box"></div>
+            </div>
+
+            <!-- LIST GTT -->
+            <div id="listGttSection" style="display:none; padding: 10px;">
+                <h4>List GTT Rules</h4>
+                <button class="btn btn-info" onclick="listGttRules()">List GTT</button>
+                <div id="gtt-list-response" class="response-box"></div>
+            </div>
+
+            <!-- PROFILE -->
+            <div id="profileSection" style="display:none; padding: 10px;">
+                <h4>Profile</h4>
+                <button class="btn btn-info" onclick="fetchProfile()">Fetch Profile</button>
+                <div id="profile-response" class="response-box" style="overflow-x:auto;"></div>
+            </div>
+
+            <!-- AUTO TRADE (BUY) -->
+            <div id="autoTradeSection" style="display:none; padding: 10px;">
+                <h4>Auto Trade (Buy Condition)</h4>
+                <p>Example logic: auto trade once price crosses a threshold. Simplified here.</p>
+                <div class="mb-2">
+                    <label>Symbol:</label>
+                    <input type="text" id="auto-symbol" class="form-control" placeholder="e.g. SBIN">
+                </div>
+                <div class="mb-2">
+                    <label>Quantity:</label>
+                    <input type="number" id="auto-quantity" class="form-control" value="1">
+                </div>
+                <div class="mb-2">
+                    <label>Condition:</label>
+                    <select id="auto-condition" class="form-select">
+                        <option value="Condition 1">Condition 1</option>
+                        <option value="Condition 2">Condition 2</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label>Basis:</label>
+                    <select id="auto-basis" class="form-select">
+                        <option value="fixed">Fixed Price</option>
+                        <option value="points">Points</option>
+                        <option value="percentage">Percentage</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label>Threshold Value:</label>
+                    <input type="number" id="auto-threshold" class="form-control" value="100">
+                </div>
+                <div class="mb-2">
+                    <label>Reference Price (optional):</label>
+                    <input type="number" id="auto-reference" class="form-control" value="0">
+                </div>
+                <button class="btn btn-success" onclick="startAutoTrade()">Start Auto Trade</button>
+                <button class="btn btn-danger" onclick="stopAutoTrade()">Stop Auto Trade</button>
+                <div id="auto-trade-response" class="response-box"></div>
+            </div>
+
+            <!-- AUTO STOP-LOSS SELL (Trailing) -->
+            <div id="autoStopLossSection" style="display:none; padding:10px;">
+                <h4>Auto Stop-Loss Sell (Trailing)</h4>
+                <p>
+                  Two scenarios:
+                  <br>1) Price never rises => Sell if price hits buyPrice*0.95
+                  <br>2) Price rises => Trailing stop: track highest, sell if price hits highest*0.95
+                </p>
+                <div class="mb-2">
+                    <label>Symbol (already bought):</label>
+                    <input type="text" id="stoploss-symbol" class="form-control" placeholder="e.g. SBIN">
+                </div>
+                <div class="mb-2">
+                    <label>Buy Price:</label>
+                    <input type="number" id="stoploss-buyprice" class="form-control" placeholder="The price at which you bought">
+                </div>
+                <div class="mb-2">
+                    <label>Quantity:</label>
+                    <input type="number" id="stoploss-quantity" class="form-control" value="1">
+                </div>
+                <div class="mb-2">
+                    <label>Scenario:</label>
+                    <select id="stoploss-scenario" class="form-select">
+                        <option value="1">Scenario 1 (No Price Rise)</option>
+                        <option value="2">Scenario 2 (Trailing if Price Rises)</option>
+                    </select>
+                </div>
+                <button class="btn btn-warning" onclick="startTrailingStop()">Start Auto Stop-Loss Sell</button>
+                <button class="btn btn-danger" onclick="stopTrailingStop()">Stop Auto Stop-Loss Sell</button>
+                <div id="stoploss-response" class="response-box"></div>
+            </div>
+
+        </div>
+        <!-- RIGHT SIDE CHART -->
+        <div class="col-md-6">
+            <div id="chart-container"></div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>Angel One Trading Dashboard &mdash; Trailing Stop-Loss Demo</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ========== GLOBALS ==========
+    let g_authToken = null;
+    let g_refreshToken = null;
+    let chartWidget = null;
+
+    // ========== SECTION NAVIGATION ==========
+    function showSection(sectionId) {
+        const allSections = [
+            'loginSection','manualTradeSection','placeOrderSection',
+            'gttSection','listGttSection','profileSection',
+            'autoTradeSection','autoStopLossSection'
+        ];
+        allSections.forEach(s => document.getElementById(s).style.display = 'none');
+        document.getElementById(sectionId).style.display = 'block';
+        document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ========== LOGIN ==========
+    function login() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const totp = document.getElementById("totp").value;
+
+        fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ username, password, totp })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const resp = document.getElementById("login-response");
+            resp.style.display = 'block';
+            if (data.success) {
+                resp.textContent = "Login successful!";
+                resp.style.color = "green";
+                g_authToken = data.authToken;
+                g_refreshToken = data.refreshToken;
+            } else {
+                resp.textContent = data.message || "Login failed!";
+                resp.style.color = "red";
+            }
+        })
+        .catch(err => {
+            const resp = document.getElementById("login-response");
+            resp.style.display = 'block';
+            resp.textContent = "Error: " + err;
+            resp.style.color = "red";
+        });
+    }
+
+    // ========== MANUAL TRADE ==========
+    function performManualTrade() {
+        const symbol = document.getElementById("manual-symbol").value.trim();
+        const quantity = +document.getElementById("manual-quantity").value;
+        const transaction_type = document.getElementById("manual-transaction").value;
+
+        // Update chart
+        if (symbol) {
+            updateLiveChart(symbol);
+        }
+
+        fetch('/api/manual_trade', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                symbol,
+                target_price: 0,  // or user input if needed
+                quantity,
+                transaction_type,
+                authToken: g_authToken,
+                refreshToken: g_refreshToken
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const resp = document.getElementById("manual-trade-response");
+            resp.style.display = 'block';
+            if (data.success) {
+                resp.textContent = data.message || "Manual trade placed successfully!";
+                resp.style.color = "green";
+            } else {
+                resp.textContent = data.message || "Manual trade failed.";
+                resp.style.color = "red";
+            }
+        })
+        .catch(err => {
+            const resp = document.getElementById("manual-trade-response");
+            resp.style.display = 'block';
+            resp.textContent = "Error: " + err;
+            resp.style.color = "red";
+        });
+    }
+
+    // ========== PLACE ORDER DEMO ==========
+    function placeOrder() {
+        const orderParams = {
+            variety: document.getElementById("order-variety").value,
+            tradingsymbol: document.getElementById("order-tradingsymbol").value,
+            symboltoken: document.getElementById("order-symboltoken").value,
+            transactiontype: document.getElementById("order-transactiontype").value,
+            exchange: document.getElementById("order-exchange").value,
+            ordertype: document.getElementById("order-ordertype").value,
+            producttype: document.getElementById("order-producttype").value,
+            duration: document.getElementById("order-duration").value,
+            price: document.getElementById("order-price").value,
+            squareoff: "0",
+            stoploss: "0",
+            quantity: document.getElementById("order-quantity").value
+        };
+
+        // Update chart if the symbol changes
+        if (orderParams.tradingsymbol) {
+            updateLiveChart(orderParams.tradingsymbol);
+        }
+
+        fetch('/api/place_order', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ orderParams })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const resp = document.getElementById("order-response");
+            resp.style.display = 'block';
+            if (data.success) {
+                resp.textContent = "Order placed: " + data.orderid;
+                resp.style.color = "green";
+            } else {
+                resp.textContent = "Order failed: " + JSON.stringify(data);
+                resp.style.color = "red";
+            }
+        })
+        .catch(err => {
+            const resp = document.getElementById("order-response");
+            resp.style.display = 'block';
+            resp.textContent = "Error: " + err;
+            resp.style.color = "red";
+        });
+    }
+
+    // ========== CREATE GTT ==========
+    function createGttRule() {
+        const gttParams = {
+            tradingsymbol: document.getElementById("gtt-tradingsymbol").value,
+            symboltoken: document.getElementById("gtt-symboltoken").value,
+            exchange: document.getElementById("gtt-exchange").value,
+            producttype: document.getElementById("gtt-producttype").value,
+            transactiontype: document.getElementById("gtt-transactiontype").value,
+            price: parseFloat(document.getElementById("gtt-price").value),
+            qty: parseInt(document.getElementById("gtt-qty").value),
+            disclosedqty: parseInt(document.getElementById("gtt-disclosedqty").value),
+            triggerprice: parseFloat(document.getElementById("gtt-triggerprice").value),
+            timeperiod: parseInt(document.getElementById("gtt-timeperiod").value)
+        };
+
+        fetch('/api/create_gtt_rule', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ gttParams })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const resp = document.getElementById("gtt-create-response");
+            resp.style.display = 'block';
+            if (data.success) {
+                resp.textContent = "GTT created: " + data.rule_id;
+                resp.style.color = "green";
+            } else {
+                resp.textContent = "Failed: " + JSON.stringify(data);
+                resp.style.color = "red";
+            }
+        })
+        .catch(err => {
+            const resp = document.getElementById("gtt-create-response");
+            resp.style.display = 'block';
+            resp.textContent = "Error: " + err;
+            resp.style.color = "red";
+        });
+    }
+
+    // ========== LIST GTT ==========
+    function listGttRules() {
+        fetch('/api/list_gtt_rules', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({})
+        })
+        .then(res => res.json())
+        .then(data => {
+            const resp = document.getElementById("gtt-list-response");
+            resp.style.display = 'block';
+            if (data.success) {
+                resp.textContent = "GTT list:\n" + JSON.stringify(data.gtt_list, null, 2);
+                resp.style.color = "green";
+            } else {
+                resp.textContent = "List GTT failed: " + JSON.stringify(data);
+                resp.style.color = "red";
+            }
+        })
+        .catch(err => {
+            const resp = document.getElementById("gtt-list-response");
+            resp.style.display = 'block';
+            resp.textContent = "Error: " + err;
+            resp.style.color = "red";
+        });
+    }
+
+    // ========== PROFILE ==========
+    function fetchProfile() {
+        if (!g_refreshToken) {
+            alert("You must log in first!");
+            return;
+        }
+        fetch('/api/get_profile', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ refreshToken: g_refreshToken })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const resp = document.getElementById("profile-response");
+            resp.style.display = 'block';
+            if (data.success) {
+                resp.innerHTML = JSON.stringify(data.profile, null, 2);
+                resp.style.color = "green";
+            } else {
+                resp.textContent = "Profile fetch failed: " + data.error;
+                resp.style.color = "red";
+            }
+        })
+        .catch(err => {
+            const resp = document.getElementById("profile-response");
+            resp.style.display = 'block';
+            resp.textContent = "Error: " + err;
+            resp.style.color = "red";
+        });
+    }
+
+    // ========== AUTO TRADE (BUY) ==========
+    function startAutoTrade() {
+        const symbol = document.getElementById("auto-symbol").value.trim();
+        const quantity = +document.getElementById("auto-quantity").value;
+        const condition = document.getElementById("auto-condition").value;
+        const basis = document.getElementById("auto-basis").value;
+        const threshold_value = +document.getElementById("auto-threshold").value;
+        const reference_price = +document.getElementById("auto-reference").value;
+
+        if (symbol) {
+            updateLiveChart(symbol);
+        }
+
+        fetch('/api/auto_trade', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                symbol, quantity, condition, basis,
+                threshold_value, reference_price
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const resp = document.getElementById("auto-trade-response");
+            resp.style.display = 'block';
+            if (data.success) {
+                resp.textContent = data.message;
+                resp.style.color = "green";
+            } else {
+                resp.textContent = data.message || "Auto trade failed.";
+                resp.style.color = "red";
+            }
+        })
+        .catch(err => {
+            const resp = document.getElementById("auto-trade-response");
+            resp.style.display = 'block';
+            resp.textContent = "Error: " + err;
+            resp.style.color = "red";
+        });
+    }
+
+    function stopAutoTrade() {
+        fetch('/api/stop_auto_trade', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({})
+        })
+        .then(res => res.json())
+        .then(data => {
+            const resp = document.getElementById("auto-trade-response");
+            resp.style.display = 'block';
+            if (data.success) {
+                resp.textContent = data.message;
+                resp.style.color = "green";
+            } else {
+                resp.textContent = data.message || "Stop failed.";
+                resp.style.color = "red";
+            }
+        })
+        .catch(err => {
+            const resp = document.getElementById("auto-trade-response");
+            resp.style.display = 'block';
+            resp.textContent = "Error: " + err;
+            resp.style.color = "red";
+        });
+    }
+
+    // ========== AUTO STOP-LOSS SELL (TRAILING) ==========
+    function startTrailingStop() {
+        const symbol = document.getElementById("stoploss-symbol").value.trim();
+        const buy_price = parseFloat(document.getElementById("stoploss-buyprice").value);
+        const quantity = parseInt(document.getElementById("stoploss-quantity").value);
+        const scenario = document.getElementById("stoploss-scenario").value; // "1" or "2"
+
+        if (!symbol || !buy_price || !quantity) {
+            alert("Please fill symbol, buy price, and quantity.");
+            return;
+        }
+        updateLiveChart(symbol);
+
+        fetch('/api/auto_stoploss_sell', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                symbol, buy_price, quantity, scenario
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const resp = document.getElementById("stoploss-response");
+            resp.style.display = 'block';
+            if (data.success) {
+                resp.textContent = data.message;
+                resp.style.color = "green";
+            } else {
+                resp.textContent = data.error || "Failed to start trailing stop-loss.";
+                resp.style.color = "red";
+            }
+        })
+        .catch(err => {
+            const resp = document.getElementById("stoploss-response");
+            resp.style.display = 'block';
+            resp.textContent = "Error: " + err;
+            resp.style.color = "red";
+        });
+    }
+
+    function stopTrailingStop() {
+        fetch('/api/stop_auto_stoploss_sell', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({})
+        })
+        .then(res => res.json())
+        .then(data => {
+            const resp = document.getElementById("stoploss-response");
+            resp.style.display = 'block';
+            if (data.success) {
+                resp.textContent = data.message;
+                resp.style.color = "green";
+            } else {
+                resp.textContent = data.error || "Failed to stop trailing stop.";
+                resp.style.color = "red";
+            }
+        })
+        .catch(err => {
+            const resp = document.getElementById("stoploss-response");
+            resp.style.display = 'block';
+            resp.textContent = "Error: " + err;
+            resp.style.color = "red";
+        });
+    }
+
+    // ========== TRADINGVIEW CHART ==========
+    function updateLiveChart(symbolInput) {
+        let symbol = symbolInput.toUpperCase().includes(':') ? symbolInput : "NSE:" + symbolInput.toUpperCase();
+        if (chartWidget) {
+            chartWidget.remove();
+        }
+        chartWidget = new TradingView.widget({
+            symbol: symbol,
+            interval: "5",
+            timezone: "Asia/Kolkata",
+            theme: "dark",
+            style: "1",
+            locale: "en",
+            toolbar_bg: "#f1f3f6",
+            container_id: "chart-container",
+            width: "100%",
+            height: 700
+        });
+    }
+
+    // Load a default chart
+    window.addEventListener('DOMContentLoaded', () => {
+        updateLiveChart("NIFTY");
+    });
+</script>
+
+</body>
+</html>
+    """
 
 # 1. LOGIN
 @app.route('/api/login', methods=['POST'])
 def api_login():
-    """
-    API endpoint for logging in using provided credentials and TOTP token.
-    """
     data = request.get_json()
     username_input = data.get('username')
     password_input = data.get('password')
     totp_input = data.get('totp')
 
-    auth_tokens = login_to_api(username_input, password_input, totp_input)
-    if auth_tokens:
+    global authToken, refreshToken
+    tokens = login_to_api(username_input, password_input, totp_input)
+    if tokens:
+        authToken, refreshToken = tokens
         return jsonify({
             "success": True,
             "message": "Login Successfully",
-            "authToken": auth_tokens[0],
-            "refreshToken": auth_tokens[1]
+            "authToken": authToken,
+            "refreshToken": refreshToken
         })
     else:
         return jsonify({"success": False, "message": "Login Failed"})
 
-
 # 2. PLACE ORDER
 @app.route('/api/place_order', methods=['POST'])
 def api_place_order():
-    """
-    API endpoint to place an order.
-    """
     data = request.get_json()
     order_params = data.get('orderParams', {})
-    # Typically you'd re-auth or ensure the session is valid. 
     order_id = place_order(order_params)
     if order_id:
         return jsonify({"success": True, "orderid": order_id})
     else:
         return jsonify({"success": False, "error": "Order placement failed."})
-    
-def fetch_live_price(symbol):
-    try:
-        ltp_data = smartApi.ltpData("NSE", symbol)
-        return float(ltp_data['data']['ltp'])
-    except Exception as e:
-        logger.error(f"Error fetching live price for {symbol}: {e}")
-        return None
 
-from threading import Thread
-import time
-
-# Monitor price and execute trades
-def auto_trade_logic(symbol, thresholds, mode, auth_token):
-    """
-    Monitors the price of a given symbol and places orders based on thresholds.
-    :param symbol: Symbol to monitor (e.g., NIFTY50).
-    :param thresholds: Dictionary with stop_loss and take_profit values.
-    :param mode: AUTO or MANUAL mode.
-    :param auth_token: Auth token for placing trades.
-    """
-    try:
-        while True:
-            # Fetch the latest price using SmartAPI's LTP function
-            ltp_data = smartApi.ltpData('NFO', symbol)
-            current_price = float(ltp_data['data']['ltp'])
-
-            if current_price <= thresholds['stop_loss']:
-                logger.info(f"Stop-loss triggered. Selling {symbol} at {current_price}")
-                place_order({
-                    "variety": "NORMAL",
-                    "tradingsymbol": symbol,
-                    "transactiontype": "SELL",
-                    "exchange": "NFO",
-                    "ordertype": "MARKET",
-                    "producttype": "INTRADAY",
-                    "quantity": thresholds['quantity'],
-                    "price": current_price
-                })
-                break
-
-            if current_price >= thresholds['take_profit']:
-                logger.info(f"Take-profit triggered. Selling {symbol} at {current_price}")
-                place_order({
-                    "variety": "NORMAL",
-                    "tradingsymbol": symbol,
-                    "transactiontype": "SELL",
-                    "exchange": "NFO",
-                    "ordertype": "MARKET",
-                    "producttype": "INTRADAY",
-                    "quantity": thresholds['quantity'],
-                    "price": current_price
-                })
-                break
-
-            # Sleep for a few seconds before checking again
-            time.sleep(5)
-    except Exception as e:
-        logger.error(f"Error in auto-trade logic: {e}")
-
-# API to start auto-trading
-@app.route('/api/start_auto_trade', methods=['POST'])
-def start_auto_trade():
-    """
-    Starts the auto-trade logic with the given parameters.
-    """
-    data = request.get_json()
-    symbol = data.get('symbol')
-    initial_price = float(data.get('initial_price'))
-    mode = data.get('mode', 'AUTO')
-    quantity = int(data.get('quantity', 1))
-
-    thresholds = {
-        'stop_loss': initial_price * 0.9,  # 10% below initial price
-        'take_profit': initial_price * 1.15,  # 15% above initial price
-        'quantity': quantity
-    }
-
-    thread = Thread(target=auto_trade_logic, args=(symbol, thresholds, mode, authToken))
-    thread.start()
-
-    return jsonify({"success": True, "message": f"Started auto-trading for {symbol}"})
-
-# API to stop auto-trading (1st definition)
-@app.route('/api/stop_auto_trade', methods=['POST'])
-def stop_auto_trade():
-    """
-    Stops the auto-trade logic (if running).
-    """
-    # This can be implemented with a flag or by killing the thread gracefully.
-    return jsonify({"success": True, "message": "Auto-trading stopped"})
-
-
-# 3. CREATE GTT RULE
+# 3. CREATE GTT
 @app.route('/api/create_gtt_rule', methods=['POST'])
 def api_create_gtt_rule():
-    """
-    API endpoint to create a GTT rule.
-    """
     data = request.get_json()
     gtt_params = data.get('gttParams', {})
-
     rule_id = create_gtt_rule(gtt_params)
     if rule_id:
         return jsonify({"success": True, "rule_id": rule_id})
     else:
         return jsonify({"success": False, "error": "GTT Rule creation failed."})
 
-
-# 4. LIST GTT RULES
+# 4. LIST GTT
 @app.route('/api/list_gtt_rules', methods=['POST'])
 def api_list_gtt_rules():
-    """
-    API endpoint to list GTT rules.
-    """
     gtt_list_data = list_gtt_rules()
     if gtt_list_data:
         return jsonify({"success": True, "gtt_list": gtt_list_data})
     else:
         return jsonify({"success": False, "error": "GTT listing failed."})
 
+# 5. MANUAL TRADE
+@app.route('/api/manual_trade', methods=['POST'])
+def manual_trade():
+    data = request.get_json()
+    symbol = data.get('symbol')
+    target_price = data.get('target_price', 0)
+    quantity = int(data.get('quantity', 1))
+    transaction_type = data.get('transaction_type', "BUY")
 
-# 7. GET PROFILE
+    # For demonstration, we pass a minimal orderParams
+    order_id = place_order({
+        "tradingsymbol": symbol,
+        "price": target_price,
+        "quantity": quantity,
+        "transactiontype": transaction_type,
+        "exchange": "NSE",
+        "producttype": "INTRADAY",
+        "ordertype": "MARKET",  # or "LIMIT" if you'd prefer
+    })
+    if order_id:
+        return jsonify({"success": True, "message": f"Manual order placed. ID: {order_id}"})
+    else:
+        return jsonify({"success": False, "message": "Manual trade failed."})
+
+# 6. GET PROFILE
 @app.route('/api/get_profile', methods=['POST'])
 def api_get_profile():
-    """
-    API endpoint to fetch user profile using SmartAPI's getProfile() method.
-    """
     data = request.get_json()
     refresh_token_input = data.get("refreshToken")
 
@@ -286,42 +1003,22 @@ def api_get_profile():
         return jsonify({"success": False, "error": "Missing refreshToken"})
 
     try:
-        # Attempt to fetch user profile
+        # Use the SmartAPI instance to fetch profile
         profile_data = smartApi.getProfile(refresh_token_input)
+
         if not profile_data or not profile_data.get('status'):
             raise Exception(profile_data.get('message', 'Unknown error fetching profile'))
 
         profile = profile_data.get('data', {})
         return jsonify({"success": True, "profile": profile})
+
     except Exception as e:
         logger.error(f"Failed to fetch profile: {e}")
         return jsonify({"success": False, "error": str(e)})
 
 
-@app.route('/api/manual_trade', methods=['POST'])
-def manual_trade():
-    data = request.get_json()
-    symbol = data.get('symbol')
-    target_price = float(data.get('target_price', 0))  # default 0 if not provided
-    quantity = int(data.get('quantity', 1))
-    transaction_type = data.get('transaction_type', 'BUY')
-    try:
-        order_id = place_order({
-            "tradingsymbol": symbol,
-            "price": target_price,
-            "quantity": quantity,
-            "transactiontype": transaction_type,
-            "exchange": "NFO",  # or 'NSE' if you want equity
-            "producttype": "INTRADAY",
-            "ordertype": "LIMIT"
-        })
-        if order_id:
-            return jsonify({"success": True, "message": f"Order placed successfully. ID: {order_id}"})
-        else:
-            return jsonify({"success": False, "message": "Order placement failed."})
-    except Exception as e:
-        return jsonify({"success": False, "message": f"Error: {str(e)}"})
-
+# 7. AUTO TRADE BUY (Condition 1 & 2)
+stop_auto_trade_flag = [False]
 
 @app.route('/api/auto_trade', methods=['POST'])
 def auto_trade():
@@ -343,25 +1040,34 @@ def auto_trade():
                     time.sleep(5)
                     continue
 
+                # Simplified logic for demonstration:
                 if condition == "Condition 1":
                     if basis == "fixed" and live_price >= threshold_value:
-                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                        place_order({"tradingsymbol": symbol, "price": live_price, "quantity": quantity,
+                                     "transactiontype": "BUY", "exchange": "NSE", "producttype": "INTRADAY",
+                                     "ordertype": "MARKET"})
                         break
-                    elif basis == "points" and live_price >= live_price + threshold_value:
-                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                    elif basis == "points" and live_price >= (live_price + threshold_value):
+                        # Not a typical logic, you might want reference_price + threshold_value
                         break
                     elif basis == "percentage" and live_price >= live_price * (1 + threshold_value / 100):
-                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
                         break
+
                 elif condition == "Condition 2":
                     if basis == "fixed" and live_price > threshold_value:
-                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                        place_order({"tradingsymbol": symbol, "price": live_price, "quantity": quantity,
+                                     "transactiontype": "BUY", "exchange": "NSE", "producttype": "INTRADAY",
+                                     "ordertype": "MARKET"})
                         break
                     elif basis == "points" and live_price > reference_price + threshold_value:
-                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                        place_order({"tradingsymbol": symbol, "price": live_price, "quantity": quantity,
+                                     "transactiontype": "BUY", "exchange": "NSE", "producttype": "INTRADAY",
+                                     "ordertype": "MARKET"})
                         break
                     elif basis == "percentage" and live_price > reference_price * (1 + threshold_value / 100):
-                        place_order({"symbol": symbol, "price": live_price, "quantity": quantity})
+                        place_order({"tradingsymbol": symbol, "price": live_price, "quantity": quantity,
+                                     "transactiontype": "BUY", "exchange": "NSE", "producttype": "INTRADAY",
+                                     "ordertype": "MARKET"})
                         break
 
                 time.sleep(5)
@@ -371,171 +1077,72 @@ def auto_trade():
     Thread(target=monitor_and_trade).start()
     return jsonify({"success": True, "message": "Auto trading started successfully."})
 
-# API to stop auto-trading (2nd definition, kept as is - duplicate route name)
 @app.route('/api/stop_auto_trade', methods=['POST'])
-def stop_auto_trade_2():
-    # The second definition of the same route, intentionally preserved
+def stop_auto_trade():
     stop_auto_trade_flag[0] = True
     return jsonify({"success": True, "message": "Auto trading stopped successfully."})
 
-
-# -------------------------------------------------------------------------
-# NEW FEATURES IMPLEMENTATION
-# (Auto Trailing SL, Auto Trailing Buy, Single-Click Execute, Two-Way Switch,
-#  SL Based on Price/Points/%, Automatic Calculation of Loss %)
-# -------------------------------------------------------------------------
-
-##############################
-# 1) AUTO TRAILING STOP LOSS #
-##############################
-@app.route('/api/auto_trailing_stop_loss', methods=['POST'])
-def auto_trailing_stop_loss():
+# 8. AUTO STOP-LOSS SELL (Trailing)
+@app.route('/api/auto_stoploss_sell', methods=['POST'])
+def auto_stoploss_sell():
     """
-    Automatically adjusts the stop-loss level as the market moves favorably.
-    Example usage:
-    JSON Body: {
-       "symbol": "NIFTY",
-       "quantity": 75,
-       "initial_sl": 100,           # e.g. a price or offset
-       "trailing_basis": "points",  # 'price', 'points', or 'percentage'
-       "trail_value": 20,
-       "entry_price": 150
-    }
+    Scenario 1: Price never goes above buy_price => stop-loss = buy_price * 0.95.
+    If price dips <= that, sell.
+
+    Scenario 2: Price moves above buy_price => track highest price seen.
+    stop-loss = highest_price * 0.95.
+    If price dips <= that, sell.
     """
     data = request.get_json()
     symbol = data.get('symbol')
-    quantity = int(data.get('quantity', 1))
-    initial_sl = float(data.get('initial_sl', 0))
-    trailing_basis = data.get('trailing_basis', 'points')  # price, points, percentage
-    trail_value = float(data.get('trail_value', 0))
-    entry_price = float(data.get('entry_price', 0))
+    buy_price = float(data.get('buy_price'))
+    quantity = int(data.get('quantity'))
+    scenario = data.get('scenario')
 
-    # We can store the highest price since entry; if the price goes up, move SL up.
-    highest_price = [entry_price]  # list so it can be mutated in local function
-    is_active = True
+    # reset the global stop-flag
+    stop_trailing_stop_flag[0] = False
 
-    def trailing_sl_thread():
+    def monitor_and_sell():
         try:
-            while is_active:
-                current_price = fetch_live_price(symbol)
-                if current_price is None:
-                    time.sleep(5)
-                    continue
+            highest_price = buy_price  # track the highest if scenario=2
+            # initial stop loss is buy_price * 0.95
+            stop_loss = buy_price * 0.95
 
-                # Update highest price if current price is new high
-                if current_price > highest_price[0]:
-                    highest_price[0] = current_price
-
-                # Calculate new Stop Loss if needed
-                if trailing_basis == 'price':
-                    # If highest price is above some threshold, set SL to that threshold
-                    # This is a simplistic approach
-                    new_sl = highest_price[0] - trail_value
-                elif trailing_basis == 'points':
-                    # e.g. if we want to trail by 20 points from the highest price
-                    new_sl = highest_price[0] - trail_value
-                else:  # 'percentage'
-                    new_sl = highest_price[0] * (1 - trail_value / 100.0)
-
-                # If new SL is bigger than the old SL, update it
-                if new_sl > initial_sl:
-                    initial_sl_local = new_sl
-                else:
-                    initial_sl_local = initial_sl
-
-                # If the current price breaks below our SL, exit
-                if current_price <= initial_sl_local:
-                    logger.info(f"Trailing SL triggered at {current_price}. Exiting position.")
-                    place_order({
-                        "tradingsymbol": symbol,
-                        "price": current_price,
-                        "quantity": quantity,
-                        "transactiontype": "SELL",
-                        "exchange": "NFO",
-                        "producttype": "INTRADAY",
-                        "ordertype": "MARKET"
-                    })
-                    break
-
-                time.sleep(5)
-        except Exception as e:
-            logger.error(f"Error in auto trailing stop loss: {e}")
-
-    Thread(target=trailing_sl_thread).start()
-    return jsonify({"success": True, "message": "Auto Trailing Stop Loss initiated."})
-
-
-############################
-# 2) AUTO TRAILING BUY     #
-############################
-@app.route('/api/auto_trailing_buy', methods=['POST'])
-def auto_trailing_buy():
-    """
-    Automatically places a buy order as the market moves favorably.
-    Example usage:
-    JSON Body: {
-       "symbol": "NIFTY",
-       "quantity": 75,
-       "trailing_basis": "points",  # price, points, or percentage
-       "trigger_value": 20,
-       "current_reference": 150
-    }
-    """
-    data = request.get_json()
-    symbol = data.get('symbol')
-    quantity = int(data.get('quantity', 1))
-    trailing_basis = data.get('trailing_basis', 'points')
-    trigger_value = float(data.get('trigger_value', 0))
-    current_reference = float(data.get('current_reference', 0))
-    is_active = True
-
-    def trailing_buy_thread():
-        try:
-            initial_ref_price = current_reference
-            while is_active:
+            while not stop_trailing_stop_flag[0]:
                 live_price = fetch_live_price(symbol)
                 if live_price is None:
                     time.sleep(5)
                     continue
 
-                # Decide if we should buy
-                if trailing_basis == 'price':
-                    # If current price <= some specified price
-                    if live_price <= trigger_value:
-                        logger.info(f"Auto trailing BUY triggered at {live_price}. Placing order.")
+                # SCENARIO 1 => If price does not rise above buy
+                # stop_loss remains at buy_price * 0.95
+                if scenario == "1":
+                    if live_price <= stop_loss:
+                        # SELL
                         place_order({
                             "tradingsymbol": symbol,
                             "price": live_price,
                             "quantity": quantity,
-                            "transactiontype": "BUY",
-                            "exchange": "NFO",
+                            "transactiontype": "SELL",
+                            "exchange": "NSE",
                             "producttype": "INTRADAY",
                             "ordertype": "MARKET"
                         })
                         break
-                elif trailing_basis == 'points':
-                    # If price has moved down certain points from initial_ref_price
-                    if live_price <= (initial_ref_price - trigger_value):
-                        logger.info(f"Auto trailing BUY triggered. Price fell {trigger_value} from {initial_ref_price}.")
+
+                # SCENARIO 2 => If price rises, we keep track of the new highest and update stop_loss
+                elif scenario == "2":
+                    if live_price > highest_price:
+                        highest_price = live_price
+                        stop_loss = highest_price * 0.95
+                    if live_price <= stop_loss:
+                        # SELL
                         place_order({
                             "tradingsymbol": symbol,
                             "price": live_price,
                             "quantity": quantity,
-                            "transactiontype": "BUY",
-                            "exchange": "NFO",
-                            "producttype": "INTRADAY",
-                            "ordertype": "MARKET"
-                        })
-                        break
-                else:  # 'percentage'
-                    if live_price <= initial_ref_price * (1 - trigger_value / 100.0):
-                        logger.info(f"Auto trailing BUY triggered. Price fell {trigger_value}% from {initial_ref_price}.")
-                        place_order({
-                            "tradingsymbol": symbol,
-                            "price": live_price,
-                            "quantity": quantity,
-                            "transactiontype": "BUY",
-                            "exchange": "NFO",
+                            "transactiontype": "SELL",
+                            "exchange": "NSE",
                             "producttype": "INTRADAY",
                             "ordertype": "MARKET"
                         })
@@ -543,234 +1150,18 @@ def auto_trailing_buy():
 
                 time.sleep(5)
         except Exception as e:
-            logger.error(f"Error in auto trailing buy: {e}")
+            logger.error(f"Error in auto stop-loss trailing: {e}")
 
-    Thread(target=trailing_buy_thread).start()
-    return jsonify({"success": True, "message": "Auto Trailing Buy initiated."})
+    Thread(target=monitor_and_sell).start()
+    return jsonify({"success": True, "message": "Trailing stop-loss monitoring started."})
 
-
-##############################################
-# 3) SINGLE-CLICK EXECUTE WITHOUT CONDITIONS #
-##############################################
-@app.route('/api/single_click_execute', methods=['POST'])
-def single_click_execute():
-    """
-    Immediately executes a trade with minimal inputs, no conditions.
-    JSON body example:
-    {
-        "symbol": "NIFTY",
-        "quantity": 75,
-        "transactiontype": "BUY"
-    }
-    """
-    data = request.get_json()
-    symbol = data.get('symbol')
-    quantity = int(data.get('quantity', 1))
-    transactiontype = data.get('transactiontype', 'BUY')
-
-    try:
-        current_price = fetch_live_price(symbol)
-        if current_price is None:
-            return jsonify({"success": False, "message": "Couldn't fetch live price."})
-
-        order_id = place_order({
-            "tradingsymbol": symbol,
-            "price": current_price,
-            "quantity": quantity,
-            "transactiontype": transactiontype,
-            "exchange": "NFO",
-            "producttype": "INTRADAY",
-            "ordertype": "MARKET"
-        })
-        if order_id:
-            return jsonify({"success": True, "message": f"Single-click trade placed. ID: {order_id}"})
-        else:
-            return jsonify({"success": False, "message": "Order placement failed."})
-    except Exception as e:
-        logger.error(f"Error in single-click execution: {e}")
-        return jsonify({"success": False, "message": str(e)})
-
-
-################################################
-# 4) TWO-WAY CALL AND PUT ORDER SWITCHING LOGIC #
-################################################
-@app.route('/api/two_way_switch', methods=['POST'])
-def two_way_switch():
-    """
-    Automatically switch between a Call and a Put position (closing the opposite).
-    JSON example:
-    {
-        "current_position": "CALL",    # or "PUT"
-        "symbol_call": "NIFTYCALL",
-        "symbol_put": "NIFTYPUT",
-        "quantity": 75,
-        "switch_to": "PUT"            # or "CALL"
-    }
-    """
-    data = request.get_json()
-    current_position = data.get('current_position')
-    symbol_call = data.get('symbol_call')
-    symbol_put = data.get('symbol_put')
-    quantity = int(data.get('quantity', 1))
-    switch_to = data.get('switch_to')
-
-    try:
-        # Close the current position
-        if current_position == "CALL":
-            # Close the CALL
-            place_order({
-                "tradingsymbol": symbol_call,
-                "transactiontype": "SELL",
-                "exchange": "NFO",
-                "ordertype": "MARKET",
-                "producttype": "INTRADAY",
-                "quantity": quantity,
-                "price": 0  # Market
-            })
-            logger.info(f"Closed CALL: {symbol_call}")
-        else:
-            # Close the PUT
-            place_order({
-                "tradingsymbol": symbol_put,
-                "transactiontype": "SELL",
-                "exchange": "NFO",
-                "ordertype": "MARKET",
-                "producttype": "INTRADAY",
-                "quantity": quantity,
-                "price": 0
-            })
-            logger.info(f"Closed PUT: {symbol_put}")
-
-        # Open the new position
-        if switch_to == "CALL":
-            place_order({
-                "tradingsymbol": symbol_call,
-                "transactiontype": "BUY",
-                "exchange": "NFO",
-                "ordertype": "MARKET",
-                "producttype": "INTRADAY",
-                "quantity": quantity,
-                "price": 0
-            })
-            logger.info(f"Switched to CALL: {symbol_call}")
-        else:
-            place_order({
-                "tradingsymbol": symbol_put,
-                "transactiontype": "BUY",
-                "exchange": "NFO",
-                "ordertype": "MARKET",
-                "producttype": "INTRADAY",
-                "quantity": quantity,
-                "price": 0
-            })
-            logger.info(f"Switched to PUT: {symbol_put}")
-
-        return jsonify({"success": True, "message": f"Switched from {current_position} to {switch_to} successfully."})
-    except Exception as e:
-        logger.error(f"Error in two-way switch: {e}")
-        return jsonify({"success": False, "message": str(e)})
-
-
-############################################################
-# 5) STOP LOSS BASED ON PRICE, POINTS, AND PERCENTAGE LOGIC #
-############################################################
-@app.route('/api/stop_loss_variants', methods=['POST'])
-def stop_loss_variants():
-    """
-    Use different ways to define SL:
-      - fixed price
-      - points offset from entry
-      - percentage offset from entry
-    JSON example:
-    {
-        "symbol": "NIFTY",
-        "quantity": 75,
-        "entry_price": 150,
-        "stop_loss_type": "points",  # "price", "points", "percentage"
-        "stop_loss_value": 10
-    }
-    """
-    data = request.get_json()
-    symbol = data.get("symbol")
-    quantity = int(data.get("quantity", 1))
-    entry_price = float(data.get("entry_price", 0))
-    stop_loss_type = data.get("stop_loss_type", "price")
-    stop_loss_value = float(data.get("stop_loss_value", 0))
-
-    # Calculate actual stop loss price
-    if stop_loss_type == "price":
-        sl_price = stop_loss_value
-    elif stop_loss_type == "points":
-        sl_price = entry_price - stop_loss_value
-    else:
-        sl_price = entry_price * (1 - stop_loss_value / 100.0)
-
-    # Start a background thread to watch the price
-    is_active = True
-    def sl_monitor():
-        try:
-            while is_active:
-                live_price = fetch_live_price(symbol)
-                if live_price is None:
-                    time.sleep(5)
-                    continue
-                if live_price <= sl_price:
-                    logger.info(f"Stop-loss triggered at {live_price}. SELL order placed.")
-                    place_order({
-                        "tradingsymbol": symbol,
-                        "price": live_price,
-                        "quantity": quantity,
-                        "transactiontype": "SELL",
-                        "exchange": "NFO",
-                        "producttype": "INTRADAY",
-                        "ordertype": "MARKET"
-                    })
-                    break
-                time.sleep(5)
-        except Exception as e:
-            logger.error(f"Error in stop_loss_variants: {e}")
-
-    Thread(target=sl_monitor).start()
-    return jsonify({
-        "success": True, 
-        "message": f"Stop loss set at {sl_price} for {symbol} with entry {entry_price}"
-    })
-
-
-####################################################
-# 6) AUTOMATIC CALCULATION OF SL LOSS PERCENTAGE    #
-####################################################
-@app.route('/api/calculate_sl_loss_percentage', methods=['POST'])
-def calculate_sl_loss_percentage():
-    """
-    Given an entry price and a stop loss price, return the potential loss %.
-    JSON example:
-    {
-        "entry_price": 100,
-        "stop_loss_price": 95
-    }
-    """
-    data = request.get_json()
-    entry_price = float(data.get("entry_price", 0))
-    stop_loss_price = float(data.get("stop_loss_price", 0))
-
-    if entry_price <= 0:
-        return jsonify({"success": False, "message": "Invalid entry price."})
-
-    loss_amount = entry_price - stop_loss_price
-    loss_percentage = (loss_amount / entry_price) * 100.0
-
-    return jsonify({
-        "success": True,
-        "entry_price": entry_price,
-        "stop_loss_price": stop_loss_price,
-        "loss_percentage": round(loss_percentage, 2)
-    })
-
+@app.route('/api/stop_auto_stoploss_sell', methods=['POST'])
+def stop_auto_stoploss_sell():
+    stop_trailing_stop_flag[0] = True
+    return jsonify({"success": True, "message": "Trailing stop-loss monitoring stopped."})
 
 # -------------------------------------------------------------------------
-# RUN FLASK (Development Only)
+# RUN FLASK
 # -------------------------------------------------------------------------
 if __name__ == "__main__":
-    # Just ensure you have a valid 'authToken' if needed for certain calls
     app.run(debug=True)
