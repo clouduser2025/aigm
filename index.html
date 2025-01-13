@@ -171,23 +171,38 @@
 }
 
 
-        /* Conditions/Auto-Trade Styles */
-        .condition-box {
-            border: 1px solid #dee2e6;
-            padding: 20px;
-            border-radius: 10px;
-            background-color: #ffffff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
+    .condition-box {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .condition-box h5 {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #007bff;
+    }
+
+    .condition-box p {
+        font-size: 14px;
+        line-height: 1.5;
+        color: #333;
+    }
+
 
         #conditions-text {
-            margin-top: 20px;
-            font-size: 16px;
+            margin-top: 10px;
+            font-size: 14px;
             font-weight: bold;
             display: none;
             background-color: #e9ecef;
-            padding: 15px;
-            border-radius: 5px;
+            padding: 10px;
+            border-radius: 2px;
             color: #333;
         }
 
@@ -480,16 +495,17 @@
       </div>
 
       <!-- AUTO TRADE (CONDITIONS) -->
-      <div class="row" id="sectionAutoTrade" style="display:none;">
+      <div class="row" id="sectionAutoTrade" >
         <div class="col-lg-12">
           <h1 class="text-center mb-4">Auto Trade Conditions</h1>
           <div class="text-center mb-4">
             <button class="btn btn-info" onclick="showConditions()">Show Conditions</button>
-            <div id="conditions-text"></div>
+            <div id="conditions-text" class="container" style="display: none;"></div>
           </div>
           <div class="row">
               <!-- Condition 1 Box -->
               <div class="col-md-6 mb-4">
+           
                   <div class="condition-box">
                       <h5>Condition 1: Auto Trade</h5>
                       <form>
@@ -847,14 +863,26 @@
 
     // ========== AUTO TRADE FUNCTIONS (Conditions) ==========
     function showConditions() {
-        const conditionsText = `
-            1. Condition 1: Auto-trade when the market price matches or exceeds a specified threshold based on fixed price, points, or percentage.
-            2. Condition 2: Auto-trade when the live market price is greater than a reference price plus a specified threshold based on points or percentage.
-        `;
-        const textElement = document.getElementById("conditions-text");
-        textElement.innerText = conditionsText;
-        textElement.style.display = "block";
-    }
+    const textElement = document.getElementById("conditions-text");
+    textElement.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="condition-box">
+                    <h5>Condition 1</h5>
+                    <p>Auto-trade when the market price matches or exceeds a specified threshold based on fixed price, points, or percentage.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="condition-box">
+                    <h5>Condition 2</h5>
+                    <p>Auto-trade when the live market price is greater than a reference price plus a specified threshold based on points or percentage.</p>
+                </div>
+            </div>
+        </div>
+    `;
+    textElement.style.display = "block";
+}
+
 
     // Condition 1
     function startCondition1() {
