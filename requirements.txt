@@ -1,15 +1,9 @@
-Flask==2.2.5
-
+Flask==2.3.2
 Flask-SQLAlchemy==3.0.5
 Flask-Bcrypt==1.0.1
 Flask-WTF==1.1.1
 WTForms==3.0.1
 Flask-Login==0.6.2
 Flask-SocketIO==5.5.1
-werkzeug==2.2.3
-python-socketio==5.8.0
-
-
-python-dotenv==1.0.0       # if you want to load .env
-pyotp==2.8.0               # optional for TOTP usage
-eventlet==0.33.3           # for production socket.io
+python-socketio>=5.12.0,<6.0.0
+eventlet==0.33.3
