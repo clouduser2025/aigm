@@ -22,7 +22,7 @@ from wtforms.validators import (
     DataRequired, Length, NumberRange, EqualTo
 )
 from flask_wtf.csrf import CSRFProtect
-from werkzeug.utils import url_quote as url_encode
+
 
 ##############################################################################
 # If you use .env, load it:
