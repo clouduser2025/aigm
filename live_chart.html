@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-center mb-4">Live Trades Chart</h2>
+<p class="text-center text-muted">Updates in real-time when any user places a trade.</p>
+
+<div class="card p-4">
+  <canvas id="liveTradesChart" height="400"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+<script>
+  // Initialize chart
+  let ctx = document.getElementById('liveTradesChart').getContext('2d');
+
+  let chartData = {
+    labels: [],
+    datasets: [{
+      label: 'Trade Price',
+      data: [],
+      borderColor: 'rgb(75, 192, 192)',
+      borderWidth: 2,
+      fill: false
+    }]
+  };
+
+  let liveTradesChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          type: 'linear',
+          position: 'bottom',
+          title: {
+            display: true,
+            text: 'Trade Sequence'
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Price'
+          }
+        }
+      }
+    }
+  });
+
+  // SocketIO
+  let socket = io();
+
+  // Request all trades initially
+  socket.on('connect', function() {
+    socket.emit('request_trades');
+  });
+
+  // Populate initial trades
+  socket.on('initial_trades', function(data) {
+    data.forEach((trade, idx) => {
+      chartData.labels.push(chartData.labels.length+1);
+      chartData.datasets[0].data.push(trade.price);
+    });
+    liveTradesChart.update();
+  });
+
+  // Listen for new trades
+  socket.on('new_trade', function(trade) {
+    chartData.labels.push(chartData.labels.length+1);
+    chartData.datasets[0].data.push(trade.price);
+    liveTradesChart.update();
+  });
+</script>
+{% endblock %}

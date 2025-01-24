@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-center text-primary mb-4"><i class="fas fa-list"></i> All Trades</h2>
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Broker</th>
+        <th>Symbol</th>
+        <th>Quantity</th>
+        <th>Type</th>
+        <th>Price</th>
+        <th>Timestamp</th>
+        <th>OrderID</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in trades %}
+      <tr>
+        <td>{{ t.id }}</td>
+        <td>{{ t.trading_user.username }}</td>
+        <td>{{ t.trading_user.broker }}</td>
+        <td>{{ t.symbol }}</td>
+        <td>{{ t.quantity }}</td>
+        <td>{{ t.transaction_type }}</td>
+        <td>{{ t.price }}</td>
+        <td>{{ t.timestamp }}</td>
+        <td>{{ t.broker_order_id }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

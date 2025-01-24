@@ -1,0 +1,174 @@
+[E 250115 17:21:40 app:259] Error fetching live price for NIFTY: 'SmartConnect' object has no attribute 'setSession'
+[E 250115 17:21:40 app:147] Session renewal failed: 'SmartConnect' object has no attribute 'renewSession'
+    Traceback (most recent call last):
+      File "C:\Users\shafe\project\app.py", line 248, in fetch_live_price
+        smart_api.setSession(authToken)
+        ^^^^^^^^^^^^^^^^^^^^
+    AttributeError: 'SmartConnect' object has no attribute 'setSession'. Did you mean: 'reqsession'?
+    
+    During handling of the above exception, another exception occurred:
+    
+    Traceback (most recent call last):
+      File "C:\Users\shafe\project\app.py", line 134, in refresh_session
+        data = smartApi.renewSession(refreshToken)
+               ^^^^^^^^^^^^^^^^^^^^^
+    AttributeError: 'SmartConnect' object has no attribute 'renewSession'. Did you mean: 'reqsession'?
+[E 250115 17:31:14 app:259] Error fetching live price for NIFTY: 'SmartConnect' object has no attribute 'setSession'
+[E 250115 17:31:14 app:147] Session renewal failed: 'SmartConnect' object has no attribute 'renewSession'
+    Traceback (most recent call last):
+      File "C:\Users\shafe\project\app.py", line 248, in fetch_live_price
+        smart_api.setSession(authToken)
+    AttributeError: 'SmartConnect' object has no attribute 'setSession'
+    
+    During handling of the above exception, another exception occurred:
+    
+    Traceback (most recent call last):
+      File "C:\Users\shafe\project\app.py", line 134, in refresh_session
+        data = smartApi.renewSession(refreshToken)
+    AttributeError: 'SmartConnect' object has no attribute 'renewSession'
+[E 250115 18:10:39 app:110] Invalid TOTP Token.
+[E 250115 18:10:39 app:132] Angel Auto-Login Exception: Non-base32 digit found
+    Traceback (most recent call last):
+      File "app.py", line 120, in angel_auto_login
+        totp_val = generate_totp(ANGEL_TOTP_SECRET)
+      File "app.py", line 111, in generate_totp
+        raise e
+      File "app.py", line 108, in generate_totp
+        return pyotp.TOTP(secret).now()
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\totp.py", line 64, in now
+        return self.generate_otp(self.timecode(datetime.datetime.now()))
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\otp.py", line 35, in generate_otp
+        hasher = hmac.new(self.byte_secret(), self.int_to_bytestring(input), self.digest)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\otp.py", line 52, in byte_secret
+        return base64.b32decode(secret, casefold=True)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\base64.py", line 231, in b32decode
+        raise binascii.Error('Non-base32 digit found') from None
+    binascii.Error: Non-base32 digit found
+[E 250115 18:10:39 app:613] Angel auto-login failed. Live price not available.
+[E 250115 18:10:41 app:110] Invalid TOTP Token.
+[E 250115 18:10:41 app:132] Angel Auto-Login Exception: Non-base32 digit found
+    Traceback (most recent call last):
+      File "C:\Users\shafe\project\app.py", line 120, in angel_auto_login
+        totp_val = generate_totp(ANGEL_TOTP_SECRET)
+      File "C:\Users\shafe\project\app.py", line 111, in generate_totp
+        raise e
+      File "C:\Users\shafe\project\app.py", line 108, in generate_totp
+        return pyotp.TOTP(secret).now()
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\totp.py", line 64, in now
+        return self.generate_otp(self.timecode(datetime.datetime.now()))
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\otp.py", line 35, in generate_otp
+        hasher = hmac.new(self.byte_secret(), self.int_to_bytestring(input), self.digest)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\otp.py", line 52, in byte_secret
+        return base64.b32decode(secret, casefold=True)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\base64.py", line 231, in b32decode
+        raise binascii.Error('Non-base32 digit found') from None
+    binascii.Error: Non-base32 digit found
+[E 250115 18:10:41 app:613] Angel auto-login failed. Live price not available.
+[E 250115 18:15:49 app:133] Angel Auto-Login Exception: name 'ANGEL_PIN' is not defined
+    Traceback (most recent call last):
+      File "app.py", line 122, in angel_auto_login
+        data = sc.generateSession(ANGEL_USERNAME, ANGEL_PIN, totp_val)
+    NameError: name 'ANGEL_PIN' is not defined
+[E 250115 18:15:49 app:614] Angel auto-login failed. Live price not available.
+[E 250115 18:15:52 app:133] Angel Auto-Login Exception: name 'ANGEL_PIN' is not defined
+    Traceback (most recent call last):
+      File "C:\Users\shafe\project\app.py", line 122, in angel_auto_login
+        data = sc.generateSession(ANGEL_USERNAME, ANGEL_PIN, totp_val)
+    NameError: name 'ANGEL_PIN' is not defined
+[E 250115 18:15:52 app:614] Angel auto-login failed. Live price not available.
+[I 250115 18:17:48 app:256] Live Price WebSocket opened.
+[W 250115 18:17:48 smartWebSocketV2:319] Attempting to resubscribe/reconnect (Attempt 1)...
+[I 250115 18:17:58 app:256] Live Price WebSocket opened.
+[E 250115 18:17:58 app:262] Live Price WebSocket error: Connection closed
+[W 250115 18:17:58 smartWebSocketV2:343] Connection closed due to max retry attempts reached.
+[E 250115 18:17:58 app:262] Live Price WebSocket error: Connection closed
+[W 250115 18:17:58 smartWebSocketV2:343] Connection closed due to max retry attempts reached.
+[E 250115 18:17:58 app:262] Live Price WebSocket error: Connection closed
+[W 250115 18:17:58 smartWebSocketV2:343] Connection closed due to max retry attempts reached.
+[E 250115 18:17:58 app:262] Live Price WebSocket error: Connection closed
+[W 250115 18:17:58 smartWebSocketV2:343] Connection closed due to max retry attempts reached.
+[E 250115 18:17:58 app:262] Live Price WebSocket error: Connection closed
+[W 250115 18:17:58 smartWebSocketV2:343] Connection closed due to max retry attempts reached.
+[I 250115 18:29:00 smartConnect:121] in pool
+[E 250115 18:29:00 app:161] Angel Session Renewal Exception: 'SmartConnect' object has no attribute 'renewSession'
+    Traceback (most recent call last):
+      File "app.py", line 149, in angel_refresh_session
+        resp = tmp_sc.renewSession(angel_refresh_token)
+    AttributeError: 'SmartConnect' object has no attribute 'renewSession'
+[E 250115 18:29:05 smartConnect:218] Error occurred while making a POST request to https://apiconnect.angelbroking.com/rest/auth/angelbroking/user/v1/loginByPassword. Headers: {'Content-type': 'application/json', 'X-ClientLocalIP': '127.0.0.1', 'X-ClientPublicIP': '106.193.147.98', 'X-MACAddress': '28:d0:43:5b:b9:c1', 'Accept': 'application/json', 'X-PrivateKey': 'y2gLEdxZ', 'X-UserType': 'USER', 'X-SourceID': 'WEB'}, Request: {'clientcode': 'A62128571', 'password': '0852', 'totp': '510487'}, Response: HTTPSConnectionPool(host='apiconnect.angelbroking.com', port=443): Max retries exceeded with url: /rest/auth/angelbroking/user/v1/loginByPassword (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000023A95DE7250>: Failed to resolve 'apiconnect.angelbroking.com' ([Errno 11002] Lookup timed out)"))
+[E 250115 18:29:05 app:133] Angel Auto-Login Exception: HTTPSConnectionPool(host='apiconnect.angelbroking.com', port=443): Max retries exceeded with url: /rest/auth/angelbroking/user/v1/loginByPassword (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000023A95DE7250>: Failed to resolve 'apiconnect.angelbroking.com' ([Errno 11002] Lookup timed out)"))
+    Traceback (most recent call last):
+      File "app.py", line 149, in angel_refresh_session
+        resp = tmp_sc.renewSession(angel_refresh_token)
+    AttributeError: 'SmartConnect' object has no attribute 'renewSession'
+    
+    During handling of the above exception, another exception occurred:
+    
+    Traceback (most recent call last):
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\urllib3\connection.py", line 200, in _new_conn
+        sock = connection.create_connection(
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\urllib3\util\connection.py", line 60, in create_connection
+        for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\eventlet\support\greendns.py", line 558, in getaddrinfo
+        qname, addrs = _getaddrinfo_lookup(host, family, flags)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\eventlet\support\greendns.py", line 529, in _getaddrinfo_lookup
+        raise err
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\eventlet\support\greendns.py", line 518, in _getaddrinfo_lookup
+        answer = resolve(host, qfamily, False, use_network=use_network)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\eventlet\support\greendns.py", line 471, in resolve
+        _raise_new_error(EAI_EAGAIN_ERROR)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\eventlet\support\greendns.py", line 100, in _raise_new_error
+        raise error_instance.__class__(*error_instance.args)
+    socket.gaierror: [Errno 11002] Lookup timed out
+    
+    The above exception was the direct cause of the following exception:
+    
+    Traceback (most recent call last):
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\urllib3\connectionpool.py", line 790, in urlopen
+        response = self._make_request(
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\urllib3\connectionpool.py", line 491, in _make_request
+        raise new_e
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\urllib3\connectionpool.py", line 467, in _make_request
+        self._validate_conn(conn)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\urllib3\connectionpool.py", line 1092, in _validate_conn
+        conn.connect()
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\urllib3\connection.py", line 604, in connect
+        self.sock = sock = self._new_conn()
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\urllib3\connection.py", line 207, in _new_conn
+        raise NameResolutionError(self.host, self, e) from e
+    urllib3.exceptions.NameResolutionError: <urllib3.connection.HTTPSConnection object at 0x0000023A95DE7250>: Failed to resolve 'apiconnect.angelbroking.com' ([Errno 11002] Lookup timed out)
+    
+    The above exception was the direct cause of the following exception:
+    
+    Traceback (most recent call last):
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\requests\adapters.py", line 486, in send
+        resp = conn.urlopen(
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\urllib3\connectionpool.py", line 844, in urlopen
+        retries = retries.increment(
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\urllib3\util\retry.py", line 515, in increment
+        raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+    urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='apiconnect.angelbroking.com', port=443): Max retries exceeded with url: /rest/auth/angelbroking/user/v1/loginByPassword (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000023A95DE7250>: Failed to resolve 'apiconnect.angelbroking.com' ([Errno 11002] Lookup timed out)"))
+    
+    During handling of the above exception, another exception occurred:
+    
+    Traceback (most recent call last):
+      File "app.py", line 122, in angel_auto_login
+        data = sc.generateSession(ANGEL_USERNAME, ANGEL_PIN, totp_val)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 268, in generateSession
+        loginResultObject=self._postRequest("api.login",params)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 260, in _postRequest
+        return self._request(route, "POST", params)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 219, in _request
+        raise e
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 207, in _request
+        r = requests.request(method,
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\requests\api.py", line 59, in request
+        return session.request(method=method, url=url, **kwargs)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\requests\sessions.py", line 589, in request
+        resp = self.send(prep, **send_kwargs)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\requests\sessions.py", line 703, in send
+        r = adapter.send(request, **kwargs)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\requests\adapters.py", line 519, in send
+        raise ConnectionError(e, request=request)
+    requests.exceptions.ConnectionError: HTTPSConnectionPool(host='apiconnect.angelbroking.com', port=443): Max retries exceeded with url: /rest/auth/angelbroking/user/v1/loginByPassword (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x0000023A95DE7250>: Failed to resolve 'apiconnect.angelbroking.com' ([Errno 11002] Lookup timed out)"))
+[E 250115 18:29:05 app:163] Re-login failed. Stopping refresh thread.

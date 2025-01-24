@@ -1,0 +1,55 @@
+[E 250117 11:46:22 test1:64] Login failed: Non-base32 digit found
+    Traceback (most recent call last):
+      File "test1.py", line 53, in angel_login
+        totp = generate_totp(TOTP_SECRET)
+      File "test1.py", line 47, in generate_totp
+        return pyotp.TOTP(secret).now()
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\totp.py", line 64, in now
+        return self.generate_otp(self.timecode(datetime.datetime.now()))
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\otp.py", line 35, in generate_otp
+        hasher = hmac.new(self.byte_secret(), self.int_to_bytestring(input), self.digest)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\otp.py", line 52, in byte_secret
+        return base64.b32decode(secret, casefold=True)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\base64.py", line 231, in b32decode
+        raise binascii.Error('Non-base32 digit found') from None
+    binascii.Error: Non-base32 digit found
+[E 250117 11:46:22 test1:163] Background login failed.
+[E 250117 11:46:24 test1:64] Login failed: Non-base32 digit found
+    Traceback (most recent call last):
+      File "C:\Users\shafe\project\test1.py", line 53, in angel_login
+        totp = generate_totp(TOTP_SECRET)
+      File "C:\Users\shafe\project\test1.py", line 47, in generate_totp
+        return pyotp.TOTP(secret).now()
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\totp.py", line 64, in now
+        return self.generate_otp(self.timecode(datetime.datetime.now()))
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\otp.py", line 35, in generate_otp
+        hasher = hmac.new(self.byte_secret(), self.int_to_bytestring(input), self.digest)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\pyotp\otp.py", line 52, in byte_secret
+        return base64.b32decode(secret, casefold=True)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\base64.py", line 231, in b32decode
+        raise binascii.Error('Non-base32 digit found') from None
+    binascii.Error: Non-base32 digit found
+[E 250117 11:46:24 test1:163] Background login failed.
+[E 250117 12:00:41 smartConnect:243] Error occurred while making a POST request to https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData. Error: Invalid date or time format. URL: https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData, Headers: {'Content-type': 'application/json', 'X-ClientLocalIP': '127.0.0.1', 'X-ClientPublicIP': '106.193.147.98', 'X-MACAddress': '28:d0:43:5b:b9:c1', 'Accept': 'application/json', 'X-PrivateKey': 'y2gLEdxZ', 'X-UserType': 'USER', 'X-SourceID': 'WEB'}, Request: {'exchange': 'NSE', 'symboltoken': '2885', 'interval': 'ONE_MINUTE', 'fromdate': '2025-01-01T23:00', 'todate': '2025-01-01T12:00'}, Response: {'message': 'Invalid date or time format', 'errorcode': 'AB13000', 'status': False, 'data': None}
+[E 250117 12:02:28 smartConnect:243] Error occurred while making a POST request to https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData. Error: Invalid date or time format. URL: https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData, Headers: {'Content-type': 'application/json', 'X-ClientLocalIP': '127.0.0.1', 'X-ClientPublicIP': '106.193.147.98', 'X-MACAddress': '28:d0:43:5b:b9:c1', 'Accept': 'application/json', 'X-PrivateKey': 'y2gLEdxZ', 'X-UserType': 'USER', 'X-SourceID': 'WEB'}, Request: {'exchange': 'NSE', 'symboltoken': '2885', 'interval': 'ONE_MINUTE', 'fromdate': '2025-01-01T09:00', 'todate': '2025-01-01T15:30'}, Response: {'message': 'Invalid date or time format', 'errorcode': 'AB13000', 'status': False, 'data': None}
+[E 250117 12:02:41 smartConnect:243] Error occurred while making a POST request to https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData. Error: Invalid date or time format. URL: https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData, Headers: {'Content-type': 'application/json', 'X-ClientLocalIP': '127.0.0.1', 'X-ClientPublicIP': '106.193.147.98', 'X-MACAddress': '28:d0:43:5b:b9:c1', 'Accept': 'application/json', 'X-PrivateKey': 'y2gLEdxZ', 'X-UserType': 'USER', 'X-SourceID': 'WEB'}, Request: {'exchange': 'NSE', 'symboltoken': '2885', 'interval': 'ONE_MINUTE', 'fromdate': '2025-01-01T09:00', 'todate': '2025-01-01T15:30'}, Response: {'message': 'Invalid date or time format', 'errorcode': 'AB13000', 'status': False, 'data': None}
+[E 250117 12:03:14 smartConnect:243] Error occurred while making a POST request to https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData. Error: Invalid date or time format. URL: https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData, Headers: {'Content-type': 'application/json', 'X-ClientLocalIP': '127.0.0.1', 'X-ClientPublicIP': '106.193.147.98', 'X-MACAddress': '28:d0:43:5b:b9:c1', 'Accept': 'application/json', 'X-PrivateKey': 'y2gLEdxZ', 'X-UserType': 'USER', 'X-SourceID': 'WEB'}, Request: {'exchange': 'NSE', 'symboltoken': '2885', 'interval': 'ONE_MINUTE', 'fromdate': '2023-01-01T09:00', 'todate': '2023-01-01T15:30'}, Response: {'message': 'Invalid date or time format', 'errorcode': 'AB13000', 'status': False, 'data': None}
+[E 250117 12:06:44 smartConnect:243] Error occurred while making a POST request to https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData. Error: Invalid date or time format. URL: https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData, Headers: {'Content-type': 'application/json', 'X-ClientLocalIP': '127.0.0.1', 'X-ClientPublicIP': '106.193.147.98', 'X-MACAddress': '28:d0:43:5b:b9:c1', 'Accept': 'application/json', 'X-PrivateKey': 'y2gLEdxZ', 'X-UserType': 'USER', 'X-SourceID': 'WEB'}, Request: {'exchange': 'NSE', 'symboltoken': '2885', 'interval': 'ONE_MINUTE', 'fromdate': '2023-01-01T09:00', 'todate': '2023-01-01T15:30'}, Response: {'message': 'Invalid date or time format', 'errorcode': 'AB13000', 'status': False, 'data': None}
+[E 250117 12:13:54 smartConnect:243] Error occurred while making a POST request to https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData. Error: Invalid date or time format. URL: https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData, Headers: {'Content-type': 'application/json', 'X-ClientLocalIP': '127.0.0.1', 'X-ClientPublicIP': '106.193.147.98', 'X-MACAddress': '28:d0:43:5b:b9:c1', 'Accept': 'application/json', 'X-PrivateKey': 'y2gLEdxZ', 'X-UserType': 'USER', 'X-SourceID': 'WEB'}, Request: {'exchange': 'NSE', 'symboltoken': '2885', 'interval': 'ONE_MINUTE', 'fromdate': '2023-01-01T09:00', 'todate': '2023-01-01T15:30'}, Response: {'message': 'Invalid date or time format', 'errorcode': 'AB13000', 'status': False, 'data': None}
+[E 250117 12:25:09 test1:71] Error fetching token for symbol RELIANCE-EQ: 'token'
+[E 250117 12:25:29 test1:71] Error fetching token for symbol RELIANCE-EQ: 'token'
+[E 250117 12:27:05 test1:71] Error fetching token for symbol RELIANCE-EQ: 'token'
+[E 250117 12:36:09 test1:60] Error fetching token for symbol RELIANCE: 'token'
+[E 250117 12:38:52 test1:56] Error fetching token for symbol RELIANCE: 'token'
+[E 250117 12:40:07 test1:57] Error fetching token for symbol SBIN-EQ: 'token'
+[I 250117 12:56:04 smartWebSocketOrderUpdate:38] Connection opened
+[I 250117 12:56:04 smartWebSocketOrderUpdate:32] Received message: {"user-id": "A62128571","status-code": "200","order-status": "AB00","error-message": "","orderData": {"variety": "","ordertype": "","ordertag": "","producttype": "","price": 0.0,"triggerprice": 0.0,"quantity": "0","disclosedquantity": "0","duration": "","squareoff": 0.0,"stoploss": 0.0,"trailingstoploss": 0.0,"tradingsymbol": "","transactiontype": "","exchange": "","symboltoken": "","instrumenttype": "","strikeprice": 0.0,"optiontype": "","expirydate": "","lotsize": "0","cancelsize": "0","averageprice": 0.0,"filledshares": "","unfilledshares": "","orderid": "","text": "","status": "","orderstatus": "","updatetime": "","exchtime": "","exchorderupdatetime": "","fillid": "","filltime": "","parentorderid": ""}}
+[I 250117 12:56:24 smartWebSocketOrderUpdate:32] Received message: b'\x00'
+[I 250117 12:56:34 smartWebSocketOrderUpdate:32] Received message: b'\x00'
+[I 250117 12:56:44 smartWebSocketOrderUpdate:32] Received message: b'\x00'
+[I 250117 12:56:54 smartWebSocketOrderUpdate:32] Received message: b'\x00'
+[I 250117 12:57:04 smartWebSocketOrderUpdate:32] Received message: b'\x00'
+[I 250117 12:57:14 smartWebSocketOrderUpdate:32] Received message: b'\x00'
+[I 250117 12:57:24 smartWebSocketOrderUpdate:32] Received message: b'\x00'
+[I 250117 12:57:34 smartWebSocketOrderUpdate:32] Received message: b'\x00'
+[I 250117 12:57:44 smartWebSocketOrderUpdate:32] Received message: b'\x00'

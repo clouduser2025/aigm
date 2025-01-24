@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="text-center py-4">
+  <h1 class="text-primary"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+  <p class="lead">Welcome, admin! Manage your multi-broker trading below.</p>
+</div>
+
+<div class="row">
+  <div class="col-md-6 mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body text-center">
+        <h4 class="card-title text-success"><i class="fas fa-user-plus"></i> Register Users</h4>
+        <p>Register a single user or bulk upload a CSV file.</p>
+        <a href="{{ url_for('register_user') }}" class="btn btn-success">
+          <i class="fas fa-user-plus"></i> Register
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body text-center">
+        <h4 class="card-title text-info"><i class="fas fa-shopping-cart"></i> Trades</h4>
+        <p>Place manual or auto trades, or view the entire trades list.</p>
+        <a href="{{ url_for('place_order') }}" class="btn btn-primary mb-2">
+          <i class="fas fa-shopping-cart"></i> Place Order
+        </a>
+        <a href="{{ url_for('view_trades') }}" class="btn btn-info">
+          <i class="fas fa-list"></i> View Trades
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-3">
+  <div class="col-md-6 mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body text-center">
+        <h4 class="card-title text-warning"><i class="fas fa-chart-line"></i> Live Chart</h4>
+        <p>Monitor trades in real time via Socket.IO.</p>
+        <a href="{{ url_for('chart') }}" class="btn btn-warning">
+          <i class="fas fa-chart-bar"></i> Go to Chart
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6 mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body text-center">
+        <h4 class="card-title"><i class="fas fa-database text-secondary"></i> Stats</h4>
+        <p>Total Users: <strong>{{ total_users }}</strong></p>
+        <p>Total Trades: <strong>{{ total_trades }}</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

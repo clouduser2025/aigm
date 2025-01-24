@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="text-center text-primary mb-4">
+    <i class="fas fa-shopping-cart"></i> Place Orders / Auto / Stop-Loss
+  </h2>
+
+  <ul class="nav nav-tabs" id="orderTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">
+        <i class="fas fa-hand-point-right"></i> Manual Order
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="auto-tab" data-bs-toggle="tab" data-bs-target="#auto" type="button" role="tab">
+        <i class="fas fa-robot"></i> Auto Trading
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="stoploss-tab" data-bs-toggle="tab" data-bs-target="#stoploss" type="button" role="tab">
+        <i class="fas fa-shield-alt"></i> Stop-Loss
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="explain-tab" data-bs-toggle="tab" data-bs-target="#explain" type="button" role="tab">
+        <i class="fas fa-info-circle"></i> Explanation
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content p-4 bg-white border rounded-bottom">
+    <!-- MANUAL -->
+    <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
+      <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+          {{ form.user_id.label(class="form-label") }}
+          {{ form.user_id(class="form-select") }}
+        </div>
+        <div class="mb-3">
+          {{ form.symbol.label(class="form-label") }}
+          {{ form.symbol(class="form-control", placeholder="e.g. INFY") }}
+        </div>
+        <div class="mb-3">
+          {{ form.transaction_type.label(class="form-label") }}
+          {{ form.transaction_type(class="form-select") }}
+        </div>
+        <div class="mb-3">
+          {{ form.quantity.label(class="form-label") }}
+          {{ form.quantity(class="form-control", placeholder="0 => use default") }}
+        </div>
+        <div class="mb-3">
+          {{ form.price.label(class="form-label") }}
+          {{ form.price(class="form-control", placeholder="Enter Price") }}
+        </div>
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="fas fa-paper-plane"></i> {{ form.submit.label.text }}
+        </button>
+      </form>
+    </div>
+
+    <!-- AUTO TRADING -->
+    <div class="tab-pane fade" id="auto" role="tabpanel" aria-labelledby="auto-tab">
+      <h5 class="text-success"><i class="fas fa-robot"></i> Auto Trade (Buy)</h5>
+      <div class="row g-3 mb-2">
+        <div class="col-md-4">
+          <label class="form-label">Select User ID</label>
+          <select id="auto_user" class="form-select">
+            {% for u in users %}
+            <option value="{{ u.id }}">{{ u.username }} ({{u.broker}})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Symbol</label>
+          <input type="text" id="auto_symbol" class="form-control" placeholder="INFY">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Quantity (0 => default)</label>
+          <input type="number" id="auto_qty" class="form-control" placeholder="0">
+        </div>
+      </div>
+      <div class="row g-3 mb-2">
+        <div class="col-md-4">
+          <label class="form-label">Condition</label>
+          <select id="auto_condition" class="form-select">
+            <option value="Condition 1">Condition 1 (>= threshold)</option>
+            <option value="Condition 2">Condition 2 (> threshold)</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Basis</label>
+          <select id="auto_basis" class="form-select">
+            <option value="fixed">Fixed</option>
+            <option value="points">Points</option>
+            <option value="percentage">Percentage</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Threshold Value</label>
+          <input type="number" step="0.01" id="auto_threshold" class="form-control" placeholder="1500">
+        </div>
+      </div>
+      <div class="row g-3 mb-2">
+        <div class="col-md-4">
+          <label class="form-label">Reference Price</label>
+          <input type="number" step="0.01" id="auto_reference" class="form-control" placeholder="Optional">
+        </div>
+      </div>
+      <button class="btn btn-success me-2 mt-2" onclick="startAutoTrade()"><i class="fas fa-play"></i> Start Auto</button>
+      <button class="btn btn-danger mt-2" onclick="stopAutoTrade()"><i class="fas fa-stop"></i> Stop Auto</button>
+    </div>
+
+    <!-- STOP-LOSS -->
+    <div class="tab-pane fade" id="stoploss" role="tabpanel" aria-labelledby="stoploss-tab">
+      <h5 class="text-danger"><i class="fas fa-shield-alt"></i> Auto Stop-Loss (Sell)</h5>
+      <div class="row g-3 mb-2">
+        <div class="col-md-4">
+          <label class="form-label">Select User ID</label>
+          <select id="sl_user" class="form-select">
+            {% for u in users %}
+            <option value="{{ u.id }}">{{ u.username }} ({{u.broker}})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Symbol</label>
+          <input type="text" id="sl_symbol" class="form-control" placeholder="INFY">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Buy Price</label>
+          <input type="number" step="0.01" id="sl_buy_price" class="form-control" placeholder="1000">
+        </div>
+      </div>
+      <div class="row g-3 mb-2">
+        <div class="col-md-4">
+          <label class="form-label">Quantity (0 => default)</label>
+          <input type="number" id="sl_qty" class="form-control" placeholder="0">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Scenario</label>
+          <select id="sl_scenario" class="form-select">
+            <option value="1">Scenario 1 (Fixed SL)</option>
+            <option value="2">Scenario 2 (Trailing SL)</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Stop-Loss Type</label>
+          <select id="sl_type" class="form-select">
+            <option value="percentage">Percentage</option>
+            <option value="points">Points</option>
+            <option value="fixed">Fixed</option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-3 mb-2">
+        <div class="col-md-4">
+          <label class="form-label">Stop-Loss Value</label>
+          <input type="number" step="0.01" id="sl_value" class="form-control" placeholder="5 => 5% or 5 points">
+        </div>
+      </div>
+      <button class="btn btn-success me-2 mt-2" onclick="startStopLoss()"><i class="fas fa-play"></i> Start SL</button>
+      <button class="btn btn-danger mt-2" onclick="stopStopLoss()"><i class="fas fa-stop"></i> Stop SL</button>
+    </div>
+
+    <!-- EXPLANATION -->
+    <div class="tab-pane fade" id="explain" role="tabpanel" aria-labelledby="explain-tab">
+      <h5><i class="fas fa-info-circle"></i> Explanation of Auto/SL</h5>
+      <p><strong>Condition 1:</strong> Trade if price >= threshold.</p>
+      <p><strong>Condition 2:</strong> Trade if price > threshold.</p>
+      <p><strong>Scenario 1 (Fixed SL):</strong> Sell if current price <= a fixed stop-loss value.</p>
+      <p><strong>Scenario 2 (Trailing SL):</strong> Stop-loss updates as the price goes up.</p>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript to call the API endpoints -->
+<script>
+function startAutoTrade() {
+  const data = {
+    user_id: parseInt(document.getElementById('auto_user').value),
+    symbol: document.getElementById('auto_symbol').value,
+    quantity: parseInt(document.getElementById('auto_qty').value || '0'),
+    condition: document.getElementById('auto_condition').value,
+    basis: document.getElementById('auto_basis').value,
+    threshold_value: parseFloat(document.getElementById('auto_threshold').value || '0'),
+    reference_price: parseFloat(document.getElementById('auto_reference').value || '0')
+  };
+  fetch('/api/auto_trade', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(resp => alert(resp.message))
+  .catch(err => console.error(err));
+}
+
+function stopAutoTrade() {
+  const user_id = parseInt(document.getElementById('auto_user').value);
+  fetch('/api/stop_auto_trade', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({user_id})
+  })
+  .then(r => r.json())
+  .then(resp => alert(resp.message))
+  .catch(err => console.error(err));
+}
+
+function startStopLoss() {
+  const data = {
+    user_id: parseInt(document.getElementById('sl_user').value),
+    symbol: document.getElementById('sl_symbol').value,
+    buy_price: parseFloat(document.getElementById('sl_buy_price').value || '0'),
+    quantity: parseInt(document.getElementById('sl_qty').value || '0'),
+    scenario: document.getElementById('sl_scenario').value,
+    stop_loss_type: document.getElementById('sl_type').value,
+    fixed_stop_loss: document.getElementById('sl_value').value
+  };
+  fetch('/api/auto_stoploss_sell', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(resp => alert(resp.message))
+  .catch(err => console.error(err));
+}
+
+function stopStopLoss() {
+  const user_id = parseInt(document.getElementById('sl_user').value);
+  fetch('/api/stop_auto_stoploss_sell', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({user_id})
+  })
+  .then(r => r.json())
+  .then(resp => alert(resp.message))
+  .catch(err => console.error(err));
+}
+</script>
+{% endblock %}

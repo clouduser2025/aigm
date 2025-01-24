@@ -1,15 +1,31 @@
-Why Add a Registration Feature?
-1. User Management
-To support multiple users (up to three, as per your requirement), there needs to be a way to create and manage user accounts. A registration feature allows new users to sign up, providing their necessary credentials and broker details.
+conda activate trade
 
-2. Security
-Registration ensures that each user has unique credentials, enhancing the security of the trading dashboard. It allows for authentication and authorization, ensuring that only registered users can access and perform trading operations.
+cd C:\Users\shafe\project
+python app.py
+python live_price.py
 
-3. Scalability
-While the current requirement is for a maximum of three users, having a registration system lays the groundwork for future scalability, allowing more users to join if needed with minimal adjustments.
 
-Registration Process: Input and Output Examples
-1. Endpoint
-URL: /api/register
-Method: POST
-Description: Creates a new user account with the provided details
+pip install lightweight-charts
+python -m eventlet app.py
+
+
+
+Step 5: Access Pages in Your Browser
+Once the application is running, open your browser and visit the following URLs:
+
+Home Page
+URL: http://127.0.0.1:5000/
+Description: Displays the form for entering exchange, symbol, and token details.
+Result Page
+After submitting the form on the Home Page, you'll be redirected here.
+Chart Page
+Accessed via the "View Live Chart" button on the Results Page.
+Users Page
+URL: http://127.0.0.1:5000/users
+Description: Lists all registered users.
+Trades Page
+URL: http://127.0.0.1:5000/trades
+Description: Lists all trades made by users.
+Request Registration Form
+URL: http://127.0.0.1:5000/request_registration_form
+Description: Displays a form for requesting a registration token.

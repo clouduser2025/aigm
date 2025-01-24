@@ -1,0 +1,62 @@
+[E 250116 20:08:37 back:61] Error fetching symbol token for SBIN-EQ: string indices must be integers
+[I 250116 20:39:53 back:104] WebSocket opened
+[I 250116 20:39:53 back:100] Live Ticks: {'subscription_mode': 1, 'exchange_type': 1, 'token': '2885', 'sequence_number': 21803669, 'exchange_timestamp': 1737031070000, 'last_traded_price': 126645, 'subscription_mode_val': 'LTP'}
+[E 250116 21:06:55 smartWebSocketV2:87] Invalid initialization parameters. Provide valid values for all the tokens.
+[I 250116 21:06:55 back:46] Login successful.
+[I 250116 21:06:55 back:145] Background login successful.
+[E 250116 21:06:58 smartWebSocketV2:87] Invalid initialization parameters. Provide valid values for all the tokens.
+[I 250116 21:06:58 back:46] Login successful.
+[I 250116 21:06:58 back:145] Background login successful.
+[E 250116 21:07:02 smartWebSocketV2:87] Invalid initialization parameters. Provide valid values for all the tokens.
+[I 250116 21:07:02 back:46] Login successful.
+[I 250116 21:07:02 back:145] Background login successful.
+[E 250116 21:09:53 ap:49] Login failed: Couldn't parse the JSON response received from the server: b'Access denied because of exceeding access rate'
+    Traceback (most recent call last):
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 227, in _request
+        data = json.loads(r.content.decode("utf8"))
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\json\__init__.py", line 357, in loads
+        return _default_decoder.decode(s)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\json\decoder.py", line 337, in decode
+        obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\json\decoder.py", line 355, in raw_decode
+        raise JSONDecodeError("Expecting value", s, err.value) from None
+    json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+    
+    During handling of the above exception, another exception occurred:
+    
+    Traceback (most recent call last):
+      File "C:\Users\shafe\project\ap.py", line 39, in angel_login
+        data = smartApi.generateSession(CLIENT_CODE, CLIENT_PASSWORD, totp)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 268, in generateSession
+        loginResultObject=self._postRequest("api.login",params)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 260, in _postRequest
+        return self._request(route, "POST", params)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 230, in _request
+        raise ex.DataException("Couldn't parse the JSON response received from the server: {content}".format(
+    SmartApi.smartExceptions.DataException: Couldn't parse the JSON response received from the server: b'Access denied because of exceeding access rate'
+[E 250116 21:09:53 ap:147] Background login failed.
+[E 250116 21:09:56 ap:49] Login failed: Couldn't parse the JSON response received from the server: b'Access denied because of exceeding access rate'
+    Traceback (most recent call last):
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 227, in _request
+        data = json.loads(r.content.decode("utf8"))
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\json\__init__.py", line 357, in loads
+        return _default_decoder.decode(s)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\json\decoder.py", line 337, in decode
+        obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\json\decoder.py", line 355, in raw_decode
+        raise JSONDecodeError("Expecting value", s, err.value) from None
+    json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+    
+    During handling of the above exception, another exception occurred:
+    
+    Traceback (most recent call last):
+      File "C:\Users\shafe\project\ap.py", line 39, in angel_login
+        data = smartApi.generateSession(CLIENT_CODE, CLIENT_PASSWORD, totp)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 268, in generateSession
+        loginResultObject=self._postRequest("api.login",params)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 260, in _postRequest
+        return self._request(route, "POST", params)
+      File "C:\Users\shafe\anaconda3\envs\trade\lib\site-packages\SmartApi\smartConnect.py", line 230, in _request
+        raise ex.DataException("Couldn't parse the JSON response received from the server: {content}".format(
+    SmartApi.smartExceptions.DataException: Couldn't parse the JSON response received from the server: b'Access denied because of exceeding access rate'
+[E 250116 21:09:56 ap:147] Background login failed.

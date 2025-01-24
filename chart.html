@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="pb-4">
+  <h2 class="text-center text-primary mb-3"><i class="fas fa-chart-line"></i> Live Trades Chart</h2>
+  <p class="text-center text-muted">All trades from all users in real time.</p>
+  <div class="card shadow-sm p-3">
+    <canvas id="tradesChart" height="80"></canvas>
+  </div>
+</div>
+
+<!-- SocketIO -->
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js" crossorigin="anonymous"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const socket = io();
+let tradesData = [];
+
+const ctx = document.getElementById('tradesChart').getContext('2d');
+const myChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Trade Price',
+      data: [],
+      borderColor: 'rgba(75,192,192,1)',
+      borderWidth: 2,
+      fill: false,
+      tension: 0.1,
+      pointRadius: 3
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      x: { title: { display: true, text: 'Trade Index' } },
+      y: { title: { display: true, text: 'Price' } }
+    }
+  }
+});
+
+// On connect, request trades
+socket.on('connect', () => {
+  socket.emit('request_trades');
+});
+
+// Handle initial trades
+socket.on('initial_trades', (data) => {
+  tradesData = data;
+  updateChart();
+});
+
+// Handle new trades
+socket.on('new_trade', (trade) => {
+  tradesData.push(trade);
+  updateChart();
+});
+
+function updateChart() {
+  const labels = tradesData.map((_, i) => i + 1);
+  const prices = tradesData.map(t => t.price);
+  myChart.data.labels = labels;
+  myChart.data.datasets[0].data = prices;
+  myChart.update();
+}
+</script>
+{% endblock %}
