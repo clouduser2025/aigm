@@ -8,3 +8,4 @@ Flask-SocketIO==5.5.1
 python-socketio>=5.12.0,<6.0.0
 eventlet==0.33.3
 streamlit
+werkzeug==2.2.3
