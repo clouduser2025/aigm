@@ -348,6 +348,89 @@ def handle_request_trades():
 ##############################################################################
 # AUTO TRADE & STOP-LOSS API (for admin to config any user)
 ##############################################################################
+@app.route("/api/manual_trade", methods=["POST"])
+@admin_required
+def api_manual_trade():
+    """
+    Place a manual trade for a user.
+    JSON body example:
+    {
+      "user_id": 2,
+      "symbol": "INFY",
+      "transaction_type": "BUY"/"SELL",
+      "price": 1950,
+      "exchange": "NSE"
+    }
+    """
+    data = request.get_json()
+    user_id = data.get("user_id")
+    user = TradingUser.query.get(user_id)
+    if not user:
+        return jsonify({"success": False, "message": "Invalid user_id"}), 400
+
+    # Fetch user-specific details
+    quantity = user.default_quantity
+    broker = user.broker
+    api_key = user.api_key
+    totp_token = user.totp_token
+
+    # Get trade details
+    symbol = data.get("symbol")
+    transaction_type = data.get("transaction_type")
+    price = float(data.get("price", 0))
+    exchange = data.get("exchange", "NSE")  # Default to NSE
+
+    if not symbol or not transaction_type or price <= 0:
+        return jsonify({"success": False, "message": "Missing or invalid trade details."}), 400
+
+    # Handle Angel Broker
+    if broker == "angel":
+        try:
+            obj = SmartConnect(api_key=api_key)
+            session_data = obj.generateSession(user.username, totp_token)
+            feed_token = obj.getfeedToken()
+
+            # Prepare and place the order
+            orderparams = {
+                "variety": "NORMAL",
+                "tradingsymbol": symbol,
+                "symboltoken": "1234",  # Replace dynamically
+                "transactiontype": transaction_type,
+                "exchange": exchange,
+                "ordertype": "LIMIT",
+                "producttype": "INTRADAY",
+                "duration": "DAY",
+                "price": price,
+                "quantity": quantity
+            }
+            order_id = obj.placeOrder(orderparams)
+            return jsonify({"success": True, "message": f"Order placed successfully. Order ID: {order_id}"}), 200
+
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Error placing order: {e}"}), 500
+
+    # Placeholder for Shonnay Broker
+    elif broker == "shonnay":
+        try:
+            # TODO: Integrate Shonnay API here
+            return jsonify({"success": True, "message": "Shonnay integration will be added soon."}), 200
+
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Error placing Shonnay order: {e}"}), 500
+
+    else:
+        return jsonify({"success": False, "message": f"Broker {broker} not supported yet."}), 400
+    
+@app.route("/live_chart", methods=["GET"])
+@admin_required
+def live_chart():
+    """
+    Display a live market chart for a selected trading symbol and exchange.
+    Default symbol: INFY (NSE).
+    """
+    tradingsymbol = request.args.get("tradingsymbol", "INFY")
+    exchange = request.args.get("exchange", "NSE")
+    return render_template("live_chart.html", tradingsymbol=tradingsymbol, exchange=exchange)
 
 @app.route("/api/auto_trade", methods=["POST"])
 @admin_required
@@ -363,7 +446,7 @@ def api_auto_trade():
       "threshold_value": 1500,
       "reference_price": 1450,
       "stop_loss_type": "percentage"/"points"/"fixed",
-      "stop_loss_value": 5 (stop-loss value depends on type)
+      "stop_loss_value": 5
     }
     """
     data = request.get_json()
@@ -372,135 +455,119 @@ def api_auto_trade():
     if not user:
         return jsonify({"success": False, "message": "Invalid user_id"}), 400
 
-    # Fetch the user's default quantity
+    # Fetch user-specific details
     quantity = user.default_quantity
+    broker = user.broker
+    api_key = user.api_key
+    totp_token = user.totp_token
 
-    # Validate the auto-trade details
+    # Validate trade and stop-loss details
     symbol = data.get("symbol")
     condition = data.get("condition")
     basis = data.get("basis")
     threshold_value = float(data.get("threshold_value", 0))
     reference_price = float(data.get("reference_price", 0))
-
-    # Validate stop-loss details
     stop_loss_type = data.get("stop_loss_type")
     stop_loss_value = data.get("stop_loss_value")
 
     if not symbol or not condition or not basis or not stop_loss_type or stop_loss_value is None:
         return jsonify({"success": False, "message": "Missing required fields."}), 400
 
-    if stop_loss_type not in ["percentage", "points", "fixed"]:
-        return jsonify({"success": False, "message": "Invalid stop_loss_type."}), 400
+    # Handle Angel Broker
+    if broker == "angel":
+        obj = SmartConnect(api_key=api_key)
+        session_data = obj.generateSession(user.username, totp_token)
+        feed_token = obj.getfeedToken()
 
-    # Initialize auto-trade monitoring
-    auto_trade_flags[user_id] = False
+        def monitor_auto_trade():
+            while True:
+                live_price = angel_fetch_live_price(symbol)
+                if live_price is None:
+                    time.sleep(5)
+                    continue
 
-    def monitor_auto_trade(u_id, sym, qty, cond, bas, thresh_val, ref_price, sl_type, sl_val):
-        highest_price = ref_price
+                triggered = False
+                # Check trade condition
+                if condition == "Condition 1" and basis == "fixed" and live_price >= threshold_value:
+                    triggered = True
+                elif condition == "Condition 2" and basis == "fixed" and live_price > threshold_value:
+                    triggered = True
 
-        while not auto_trade_flags[u_id]:
-            live_price = angel_fetch_live_price(sym)
-            if live_price is None:
+                if triggered:
+                    try:
+                        # Place the trade
+                        orderparams = {
+                            "variety": "NORMAL",
+                            "tradingsymbol": symbol,
+                            "symboltoken": "1234",  # Replace dynamically
+                            "transactiontype": "BUY",
+                            "exchange": "NSE",
+                            "ordertype": "LIMIT",
+                            "producttype": "INTRADAY",
+                            "duration": "DAY",
+                            "price": live_price,
+                            "quantity": quantity
+                        }
+                        order_id = obj.placeOrder(orderparams)
+
+                        # Monitor Stop-Loss
+                        monitor_stop_loss(symbol, live_price, stop_loss_type, stop_loss_value, quantity)
+                        break
+                    except Exception as e:
+                        print(f"Error placing order: {e}")
+                        break
+
                 time.sleep(5)
-                continue
 
-            triggered = False
-            # Check if the trade condition is met
-            if cond == "Condition 1":  # >=
-                if bas == "fixed" and live_price >= thresh_val:
-                    triggered = True
-                elif bas == "points" and live_price >= (ref_price + thresh_val):
-                    triggered = True
-                elif bas == "percentage" and live_price >= (ref_price * (1 + thresh_val / 100)):
-                    triggered = True
-            else:  # Condition 2 => >
-                if bas == "fixed" and live_price > thresh_val:
-                    triggered = True
-                elif bas == "points" and live_price > (ref_price + thresh_val):
-                    triggered = True
-                elif bas == "percentage" and live_price > (ref_price * (1 + thresh_val / 100)):
-                    triggered = True
+        def monitor_stop_loss(symbol, entry_price, sl_type, sl_value, qty):
+            while True:
+                live_price = angel_fetch_live_price(symbol)
+                if live_price is None:
+                    time.sleep(5)
+                    continue
 
-            if triggered:
-                # Place the trade
-                bo_id = f"{user.broker.upper()}-{int(time.time())}"
-                new_trade = Trade(
-                    symbol=sym,
-                    quantity=qty,
-                    transaction_type="BUY",
-                    price=live_price,
-                    broker_order_id=bo_id,
-                    user_id=u_id
-                )
-                db.session.add(new_trade)
-                db.session.commit()
+                # Determine stop-loss level
+                if sl_type == "percentage":
+                    stop_loss = entry_price * (1 - sl_value / 100)
+                elif sl_type == "points":
+                    stop_loss = entry_price - sl_value
+                elif sl_type == "fixed":
+                    stop_loss = sl_value
 
-                # Emit the trade event via WebSocket
-                socketio.emit('new_trade', {
-                    "symbol": new_trade.symbol,
-                    "price": new_trade.price,
-                    "broker_order_id": new_trade.broker_order_id,
-                    "username": user.username,
-                    "broker": user.broker
-                }, broadcast=True)
+                if live_price <= stop_loss:
+                    try:
+                        # Place a sell order
+                        orderparams = {
+                            "variety": "NORMAL",
+                            "tradingsymbol": symbol,
+                            "symboltoken": "1234",
+                            "transactiontype": "SELL",
+                            "exchange": "NSE",
+                            "ordertype": "LIMIT",
+                            "producttype": "INTRADAY",
+                            "duration": "DAY",
+                            "price": live_price,
+                            "quantity": qty
+                        }
+                        obj.placeOrder(orderparams)
+                        break
+                    except Exception as e:
+                        print(f"Error placing stop-loss order: {e}")
+                        break
 
-                # Start monitoring stop-loss
-                monitor_stop_loss(u_id, sym, live_price, qty, sl_type, sl_val, highest_price)
-                break
+        threading.Thread(target=monitor_auto_trade, daemon=True).start()
+        return jsonify({"success": True, "message": "Auto trade started with stop-loss."}), 200
 
-            time.sleep(5)
+    # Placeholder for Shonnay Broker
+    elif broker == "shonnay":
+        try:
+            # TODO: Integrate Shonnay API here
+            return jsonify({"success": True, "message": "Shonnay integration will be added soon."}), 200
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Error in Shonnay auto-trade: {e}"}), 500
 
-    def monitor_stop_loss(u_id, sym, entry_price, qty, sl_type, sl_val, high_price):
-        stop_loss_flags[u_id] = False
-
-        while not stop_loss_flags[u_id]:
-            live_price = angel_fetch_live_price(sym)
-            if live_price is None:
-                time.sleep(5)
-                continue
-
-            if sl_type == "percentage":
-                stop_loss = entry_price * (1 - sl_val / 100)
-            elif sl_type == "points":
-                stop_loss = entry_price - sl_val
-            elif sl_type == "fixed":
-                stop_loss = sl_val
-            else:
-                return
-
-            if live_price <= stop_loss:
-                # Place a sell order
-                bo_id = f"{user.broker.upper()}-{int(time.time())}"
-                sell_trade = Trade(
-                    symbol=sym,
-                    quantity=qty,
-                    transaction_type="SELL",
-                    price=live_price,
-                    broker_order_id=bo_id,
-                    user_id=u_id
-                )
-                db.session.add(sell_trade)
-                db.session.commit()
-
-                # Emit sell event via WebSocket
-                socketio.emit('new_trade', {
-                    "symbol": sell_trade.symbol,
-                    "price": sell_trade.price,
-                    "broker_order_id": sell_trade.broker_order_id,
-                    "username": user.username,
-                    "broker": user.broker
-                }, broadcast=True)
-                break
-
-            time.sleep(5)
-
-    threading.Thread(
-        target=monitor_auto_trade,
-        args=(user_id, symbol, quantity, condition, basis, threshold_value, reference_price, stop_loss_type, stop_loss_value),
-        daemon=True
-    ).start()
-
-    return jsonify({"success": True, "message": "Auto trade started with stop-loss."}), 200
+    else:
+        return jsonify({"success": False, "message": f"Broker {broker} not supported yet."}), 400
 
 
 ##############################################################################

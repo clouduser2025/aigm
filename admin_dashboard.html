@@ -6,7 +6,8 @@
 </div>
 
 <div class="row">
-  <div class="col-md-6 mb-3">
+  <!-- Register Users Section -->
+  <div class="col-md-3 mb-3">
     <div class="card shadow-sm h-100">
       <div class="card-body text-center">
         <h4 class="card-title text-success"><i class="fas fa-user-plus"></i> Register Users</h4>
@@ -17,7 +18,9 @@
       </div>
     </div>
   </div>
-  <div class="col-md-6 mb-3">
+
+  <!-- Trades Section -->
+  <div class="col-md-3 mb-3">
     <div class="card shadow-sm h-100">
       <div class="card-body text-center">
         <h4 class="card-title text-info"><i class="fas fa-shopping-cart"></i> Trades</h4>
@@ -31,21 +34,22 @@
       </div>
     </div>
   </div>
-</div>
 
-<div class="row mt-3">
-  <div class="col-md-6 mb-3">
+  <!-- Live Chart Section -->
+  <div class="col-md-3 mb-3">
     <div class="card shadow-sm h-100">
       <div class="card-body text-center">
         <h4 class="card-title text-warning"><i class="fas fa-chart-line"></i> Live Chart</h4>
-        <p>Monitor trades in real time via Socket.IO.</p>
-        <a href="{{ url_for('chart') }}" class="btn btn-warning">
-          <i class="fas fa-chart-bar"></i> Go to Chart
+        <p>Monitor real-time stock prices with TradingView charts.</p>
+        <a href="{{ url_for('live_chart') }}" class="btn btn-warning">
+          <i class="fas fa-chart-bar"></i> Go to Live Chart
         </a>
       </div>
     </div>
   </div>
-  <div class="col-md-6 mb-3">
+
+  <!-- Stats Section -->
+  <div class="col-md-3 mb-3">
     <div class="card shadow-sm h-100">
       <div class="card-body text-center">
         <h4 class="card-title"><i class="fas fa-database text-secondary"></i> Stats</h4>
@@ -55,4 +59,36 @@
     </div>
   </div>
 </div>
+
+<div class="row mt-4">
+  <!-- Real-Time Trading Chart -->
+  <div class="col-md-12 mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title text-warning text-center"><i class="fas fa-chart-line"></i> Real-Time Stock Chart</h5>
+        <div id="chartContainer" style="height: 500px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TradingView Integration -->
+<script src="https://s3.tradingview.com/tv.js"></script>
+<script>
+  // TradingView Widget for Live Chart
+  new TradingView.widget({
+    container_id: "chartContainer",
+    autosize: true,
+    symbol: "NSE:INFY", // Default stock (e.g., INFY on NSE)
+    interval: "5",  // 5-minute interval
+    timezone: "Etc/UTC",
+    theme: "light",
+    style: "1",
+    locale: "en",
+    toolbar_bg: "#f1f3f6",
+    hide_side_toolbar: false,
+    allow_symbol_change: true,
+    studies: ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]
+  });
+</script>
 {% endblock %}

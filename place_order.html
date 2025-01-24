@@ -132,6 +132,34 @@
         <li><strong>Condition 1:</strong> Trade when live price >= threshold.</li>
         <li><strong>Condition 2:</strong> Trade when live price > threshold.</li>
       </ul>
+      <h6><strong>Stop-Loss:</strong></h6>
+      <ul>
+        <li><strong>Percentage:</strong> Stop-loss is calculated as a percentage of the entry price.
+          <ul>
+            <li>Example: Entry price = 1000, SL = 5%. SL triggers at 950.</li>
+          </ul>
+        </li>
+        <li><strong>Points:</strong> Stop-loss is calculated by subtracting points from the entry price.
+          <ul>
+            <li>Example: Entry price = 1000, SL = 10 points. SL triggers at 990.</li>
+          </ul>
+        </li>
+        <li><strong>Fixed:</strong> Stop-loss is set at a fixed price value.
+          <ul>
+            <li>Example: Fixed SL = 950. SL triggers when price drops to 950 or lower.</li>
+          </ul>
+        </li>
+      </ul>
+      <h6><strong>Auto Trade Workflow:</strong></h6>
+      <ul>
+        <li><strong>Example 1:</strong> If the threshold is set to 1500 (Condition 1), and the live price is 1500 or above, the system places a BUY trade.</li>
+        <li><strong>Example 2:</strong> For a trailing SL with percentage:
+          <ul>
+            <li>Entry price = 1000, SL = 5%. If price moves to 1050, new SL = 997.5 (1050 * 0.95).</li>
+            <li>If price drops to 997.5 or below, the system places a SELL trade.</li>
+          </ul>
+        </li>
+      </ul>
     </div>
   </div>
 </div>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chart - Trading Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <h1 class="text-center text-primary mb-4">
+            Live Chart for {{ tradingsymbol }} ({{ exchange }})
+        </h1>
+        <div class="card shadow-sm p-4">
+            <div id="chart_container" style="height: 500px;"></div>
+        </div>
+        <a href="/" class="btn btn-secondary mt-3 w-100">Back to Home</a>
+    </div>
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <script>
+        // TradingView widget
+        new TradingView.widget({
+            container_id: "chart_container",
+            autosize: true,
+            symbol: "{{ exchange }}:{{ tradingsymbol }}", // Example: NSE:INFY
+            interval: "5",  // 5-minute interval
+            timezone: "Etc/UTC",
+            theme: "light",
+            style: "1",
+            locale: "en",
+            toolbar_bg: "#f1f3f6",
+            hide_side_toolbar: false,
+            allow_symbol_change: true,
+            studies: ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]
+        });
+    </script>
+</body>
+</html>
