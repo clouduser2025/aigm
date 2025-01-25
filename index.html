@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center py-5">
+  <h1 class="text-primary"><i class="fas fa-home"></i> Welcome to MultiTrading Broker</h1>
+  <p class="lead">Manage users, place trades, and monitor live stock prices—all in one place!</p>
+</div>
+
+<div class="row text-center">
+  <div class="col-md-3 mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h4 class="card-title text-success"><i class="fas fa-user-plus"></i> Register Users</h4>
+        <p>Register new users or upload them in bulk.</p>
+        <a href="{{ url_for('register_user') }}" class="btn btn-success">
+          <i class="fas fa-user-plus"></i> Register
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h4 class="card-title text-info"><i class="fas fa-shopping-cart"></i> Place Orders</h4>
+        <p>Place manual or auto trades for users.</p>
+        <a href="{{ url_for('place_order') }}" class="btn btn-primary">
+          <i class="fas fa-shopping-cart"></i> Place Order
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h4 class="card-title text-secondary"><i class="fas fa-list"></i> View Trades</h4>
+        <p>See a history of all trades placed by users.</p>
+        <a href="{{ url_for('view_trades') }}" class="btn btn-secondary">
+          <i class="fas fa-list"></i> View Trades
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-3">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h4 class="card-title text-warning"><i class="fas fa-chart-line"></i> Live Chart</h4>
+        <p>Monitor real-time stock prices and trends.</p>
+        <a href="{{ url_for('live_chart') }}" class="btn btn-warning">
+          <i class="fas fa-chart-bar"></i> Live Chart
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

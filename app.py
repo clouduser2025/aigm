@@ -426,11 +426,13 @@ def api_manual_trade():
 def live_chart():
     """
     Display a live market chart for a selected trading symbol and exchange.
-    Default symbol: INFY (NSE).
+    Defaults to 'INFY' on 'NSE' if no parameters are provided.
     """
-    tradingsymbol = request.args.get("tradingsymbol", "INFY")
-    exchange = request.args.get("exchange", "NSE")
+    # Fetch symbol and exchange from query parameters or use defaults
+    tradingsymbol = request.args.get("tradingsymbol", "INFY")  # Default: INFY
+    exchange = request.args.get("exchange", "NSE")            # Default: NSE
     return render_template("live_chart.html", tradingsymbol=tradingsymbol, exchange=exchange)
+
 
 @app.route("/api/auto_trade", methods=["POST"])
 @admin_required

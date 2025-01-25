@@ -9,3 +9,4 @@ Flask-SocketIO==5.5.1
 python-socketio>=5.12.0
 eventlet==0.33.3
 gunicorn==20.1.0
+pip install smartapi python
