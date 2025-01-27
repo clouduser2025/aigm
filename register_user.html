@@ -10,6 +10,11 @@
           {{ form.username.label(class="form-label") }}
           {{ form.username(class="form-control", placeholder="User Name") }}
         </div>
+               <!-- Password -->
+               <div class="mb-3">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control", placeholder="Password") }}
+              </div>
         <div class="mb-3">
           {{ form.broker.label(class="form-label") }}
           {{ form.broker(class="form-select") }}
@@ -36,7 +41,8 @@
       <h5 class="text-info"><i class="fas fa-file-csv"></i> Bulk Register via CSV</h5>
       <form method="POST" enctype="multipart/form-data" action="{{ url_for('bulk_register') }}">
         <div class="mb-3">
-          <label class="form-label">CSV Format: username,broker,api_key,totp_token,default_quantity</label>
+          <label class="form-label">CSV Format: username,broker,api_key,password,totp_token,default_quantity</label>
+
           <input type="file" name="file" class="form-control" accept=".csv">
         </div>
         <button type="submit" class="btn btn-info w-100">

@@ -58,6 +58,7 @@ class TradingUser(db.Model):
     """
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
+    password = db.Column(db.String(128), nullable=False)
 
     broker = db.Column(db.String(20), nullable=False)     # angel or shonnay
     api_key = db.Column(db.String(128), nullable=False)   # for "angel" or dummy
@@ -122,6 +123,8 @@ class AdminLoginForm(FlaskForm):
 
 class RegisterTradingUserForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired(), Length(min=2, max=64)])
+    password = PasswordField("Password", validators=[DataRequired(), Length(min=6)])
+
     broker = SelectField("Broker", choices=[("angel", "Angel"), ("shonnay", "Shonnay")])
     api_key = StringField("API Key", validators=[DataRequired(), Length(min=5, max=128)])
     totp_token = StringField("TOTP (optional)", validators=[Length(max=64)])
@@ -187,15 +190,17 @@ def home():
 ##############################################################################
 # Admin Dashboard
 ##############################################################################
+# Routes
 @app.route("/admin_dashboard")
 @admin_required
 def admin_dashboard():
     total_users = TradingUser.query.count()
     total_trades = Trade.query.count()
+    users = TradingUser.query.all()
     return render_template("admin_dashboard.html",
                            total_users=total_users,
-                           total_trades=total_trades)
-
+                           total_trades=total_trades,
+                           users=users)
 ##############################################################################
 # Register Trading Users (single or bulk)
 ##############################################################################
@@ -208,19 +213,45 @@ def register_user():
             flash("Username already exists!", "danger")
             return redirect(url_for("register_user"))
 
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
         new_user = TradingUser(
             username=form.username.data,
+            password=hashed_password,
             broker=form.broker.data,
             api_key=form.api_key.data,
             totp_token=form.totp_token.data if form.broker.data == "angel" else None,
             default_quantity=form.default_quantity.data
         )
+
         db.session.add(new_user)
         db.session.commit()
         flash(f"Registered user '{new_user.username}' successfully.", "success")
         return redirect(url_for("admin_dashboard"))
 
     return render_template("register_user.html", form=form)
+
+@app.route("/delete_all_users", methods=["POST"])
+@admin_required
+def delete_all_users():
+    try:
+        num_deleted = TradingUser.query.delete()
+        db.session.commit()
+        flash(f"Deleted {num_deleted} users successfully.", "success")
+    except Exception as e:
+        flash(f"Error deleting users: {str(e)}", "danger")
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/delete_user/<int:user_id>", methods=["POST"])
+@admin_required
+def delete_user(user_id):
+    user = TradingUser.query.get(user_id)
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for("admin_dashboard"))
+    db.session.delete(user)
+    db.session.commit()
+    flash(f"Deleted user '{user.username}' successfully.", "success")
+    return redirect(url_for("admin_dashboard"))
 
 @app.route("/bulk_register", methods=["POST"])
 @admin_required
