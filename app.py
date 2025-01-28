@@ -253,13 +253,12 @@ def delete_all_users():
         flash(f"Error deleting users: {str(e)}", "danger")
     return redirect(url_for("admin_dashboard"))
 
-from flask_wtf.csrf import csrf_exempt
+from flask_wtf.csrf import csrf
 
 @app.route("/delete_user/<int:user_id>", methods=["POST"])
 @admin_required
-@csrf_exempt  # 🚨 Only if necessary
+@csrf.exempt  # Correct usage
 def delete_user(user_id):
-
     user = TradingUser.query.get(user_id)
     if not user:
         flash("User not found.", "danger")
@@ -268,6 +267,7 @@ def delete_user(user_id):
     db.session.commit()
     flash(f"Deleted user '{user.username}' successfully.", "success")
     return redirect(url_for("admin_dashboard"))
+
 
 @app.route("/bulk_register", methods=["POST"])
 @admin_required
