@@ -124,7 +124,7 @@ class AdminLoginForm(FlaskForm):
 
 class RegisterTradingUserForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired(), Length(min=2, max=64)])
-    password = PasswordField("Password", validators=[DataRequired(), Length(min=6)])
+    password = PasswordField("Password", validators=[DataRequired(), Length(min=3)])
 
     broker = SelectField("Broker", choices=[("angel", "Angel"), ("shonnay", "Shonnay")])
     api_key = StringField("API Key", validators=[DataRequired(), Length(min=5, max=128)])
