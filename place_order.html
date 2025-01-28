@@ -28,6 +28,8 @@
     <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
       <h5 class="text-primary"><i class="fas fa-hand-point-right"></i> Manual Trade</h5>
       <form id="manual-trade-form">
+        <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token() }}">
+    
         <div class="mb-3">
           <label class="form-label">Select Users</label>
           <select id="manual_users" class="form-select" multiple>
@@ -62,6 +64,8 @@
     <div class="tab-pane fade" id="auto" role="tabpanel" aria-labelledby="auto-tab">
       <h5 class="text-success"><i class="fas fa-robot"></i> Auto Trade (Buy) with Stop-Loss</h5>
       <form id="auto-trade-form">
+        <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token() }}">
+    
         <div class="row g-3 mb-2">
           <div class="col-md-4">
             <label class="form-label">Select Users</label>
@@ -176,15 +180,14 @@ function placeManualTrade() {
 };
 
   fetch('/api/manual_trade', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(data)
+      method: 'POST',
+      headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.getElementById('csrf_token').value  // ✅ Add CSRF token
+      },
+      body: JSON.stringify(data)
   })
-  .then(r => r.json())
-  .then(resp => alert(resp.message))
-  .catch(err => console.error(err));
 
-  }
 
 function startAutoTrade() {
     const data = {
@@ -199,26 +202,25 @@ function startAutoTrade() {
   };
 
     fetch('/api/auto_trade', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(data)
+      method: 'POST',
+      headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.getElementById('csrf_token').value  // ✅ Add CSRF token
+      },
+      body: JSON.stringify(data)
   })
-  .then(r => r.json())
-  .then(resp => alert(resp.message))
-  .catch(err => console.error(err));
 
-  }
 
 function stopAutoTrade() {
   const user_ids = Array.from(document.getElementById('auto_users').selectedOptions).map(opt => parseInt(opt.value));
   fetch('/api/stop_auto_trade', {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    headers: { 
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.getElementById('csrf_token').value  // ✅ Add CSRF token
+    },
     body: JSON.stringify({ user_ids })
-  })
-  .then(r => r.json())
-  .then(resp => alert(resp.message))
-  .catch(err => console.error(err));
+})
 
 </script>
 {% endblock %}

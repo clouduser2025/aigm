@@ -19,9 +19,11 @@ from wtforms import (
     StringField, PasswordField, SubmitField,
     IntegerField, FloatField, SelectField
 )
-from wtforms.validators import (
-    DataRequired, Length, NumberRange, EqualTo
+from wtforms import (
+    StringField, PasswordField, SubmitField,
+    IntegerField, FloatField, SelectField, SelectMultipleField  # ✅ Add this!
 )
+
 from flask_wtf.csrf import CSRFProtect
 
 
@@ -252,9 +254,13 @@ def delete_all_users():
         flash(f"Error deleting users: {str(e)}", "danger")
     return redirect(url_for("admin_dashboard"))
 
+from flask_wtf.csrf import csrf_exempt
+
 @app.route("/delete_user/<int:user_id>", methods=["POST"])
 @admin_required
+@csrf_exempt  # 🚨 Only if necessary
 def delete_user(user_id):
+
     user = TradingUser.query.get(user_id)
     if not user:
         flash("User not found.", "danger")
