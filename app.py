@@ -15,10 +15,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_socketio import SocketIO, emit
 from flask_wtf import FlaskForm
-from wtforms import (
-    StringField, PasswordField, SubmitField,
-    IntegerField, FloatField, SelectField
-)
+from wtforms.validators import DataRequired, Length, NumberRange
+
 from wtforms import (
     StringField, PasswordField, SubmitField,
     IntegerField, FloatField, SelectField, SelectMultipleField  # ✅ Add this!
