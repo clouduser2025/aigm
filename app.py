@@ -194,13 +194,24 @@ def home():
 @app.route("/admin_dashboard")
 @admin_required
 def admin_dashboard():
-    total_users = TradingUser.query.count()
-    total_trades = Trade.query.count()
-    users = TradingUser.query.all()
-    return render_template("admin_dashboard.html",
-                           total_users=total_users,
-                           total_trades=total_trades,
-                           users=users)
+    try:
+        # Fetch required data
+        total_users = TradingUser.query.count()
+        total_trades = Trade.query.count()
+        users = TradingUser.query.all()
+
+        # Pass data to the template
+        return render_template(
+            "admin_dashboard.html",
+            total_users=total_users,
+            total_trades=total_trades,
+            users=users,
+        )
+    except Exception as e:
+        app.logger.error(f"Error in admin_dashboard: {e}")
+        flash("An error occurred while loading the dashboard.", "danger")
+        return redirect(url_for("home"))
+
 ##############################################################################
 # Register Trading Users (single or bulk)
 ##############################################################################
