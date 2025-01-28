@@ -40,6 +40,7 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 csrf = CSRFProtect(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+csrf = CSRFProtect(app)
 
 ##############################################################################
 # Single Admin Credentials
@@ -253,11 +254,12 @@ def delete_all_users():
         flash(f"Error deleting users: {str(e)}", "danger")
     return redirect(url_for("admin_dashboard"))
 
-from flask_wtf.csrf import csrf
+from flask_wtf.csrf import CSRFProtect
+
+csrf = CSRFProtect(app)
 
 @app.route("/delete_user/<int:user_id>", methods=["POST"])
-@admin_required
-@csrf.exempt  # Correct usage
+@csrf.exempt  # Correctly disable CSRF for this route
 def delete_user(user_id):
     user = TradingUser.query.get(user_id)
     if not user:
