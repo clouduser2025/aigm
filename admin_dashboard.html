@@ -49,57 +49,6 @@
     </div>
   </div>
 
-  <div class="row mt-4">
-    <!-- Manage Users Section -->
-    <div class="col-md-12 mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title text-danger"><i class="fas fa-users"></i> Manage Users</h5>
-          <p>View, delete all, or delete specific users.</p>
-  
-          <!-- Delete All Users with Confirmation -->
-          <form method="POST" action="{{ url_for('delete_all_users') }}" class="mb-3" onsubmit="return confirm('Are you sure you want to delete all users? This action cannot be undone!');">
-            <button type="submit" class="btn btn-danger">
-              <i class="fas fa-trash-alt"></i> Delete All Users
-            </button>
-          </form>
-  
-          <!-- List Users with Delete Option -->
-          <ul class="list-group">
-            {% for user in users %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span>{{ user.username }} (Broker: {{ user.broker }})</span>
-              <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}">
-                <button type="submit" class="btn btn-sm btn-danger">
-                  <i class="fas fa-trash-alt"></i> Delete
-                </button>
-              </form>
-            </li>
-            {% endfor %}
-          </ul>
-
-          <!-- Pagination for User List -->
-          <nav aria-label="User pagination">
-            <ul class="pagination justify-content-center">
-              <li class="page-item {% if not users.has_prev %}disabled{% endif %}">
-                <a class="page-link" href="?page={{ users.prev_num }}" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-              {% for page_num in range(1, users.pages + 1) %}
-              <li class="page-item {% if users.page == page_num %}active{% endif %}">
-                <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
-              </li>
-              {% endfor %}
-              <li class="page-item {% if not users.has_next %}disabled{% endif %}">
-                <a class="page-link" href="?page={{ users.next_num }}" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-          
-
   <!-- Live Chart Section -->
   <div class="col-md-3 mb-3">
     <div class="card shadow-sm h-100">
@@ -118,29 +67,89 @@
     <div class="card shadow-sm h-100">
       <div class="card-body text-center">
         <h4 class="card-title"><i class="fas fa-database text-secondary"></i> Stats</h4>
+        {% if total_users > 0 or total_trades > 0 %}
         <p>Total Users: <strong>{{ total_users }}</strong></p>
         <p>Total Trades: <strong>{{ total_trades }}</strong></p>
+        {% else %}
+        <p class="text-muted">No data available.</p>
+        {% endif %}
       </div>
     </div>
   </div>
 </div>
 
 <div class="row mt-4">
-  <!-- Real-Time Trading Chart -->
+  <!-- Manage Users Section -->
   <div class="col-md-12 mb-3">
-    <div class="card shadow-sm h-100">
+    <div class="card shadow-sm">
       <div class="card-body">
-        <h5 class="card-title text-warning text-center"><i class="fas fa-chart-line"></i> Real-Time Stock Chart</h5>
+        <h5 class="card-title text-danger"><i class="fas fa-users"></i> Manage Users</h5>
+        <p>View, delete all, or delete specific users.</p>
 
-        <!-- Stock Symbol Input -->
-        <div class="form-group text-center mb-3">
-          <label for="stockSymbol">Stock Symbol</label>
-          <input id="stockSymbol" type="text" class="form-control w-25 d-inline-block" placeholder="e.g., NSE:INFY" value="NSE:INFY">
-          <button class="btn btn-sm btn-primary" onclick="updateChart()">Update Chart</button>
-        </div>
+        <!-- Delete All Users Button -->
+        <form method="POST" action="{{ url_for('delete_all_users') }}" class="mb-3">
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash-alt"></i> Delete All Users
+          </button>
+        </form>
 
-        <div id="chartContainer" style="height: 500px;"></div>
+        {% if users.items %}
+        <!-- List Users with Delete Option -->
+        <ul class="list-group">
+          {% for user in users.items %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ user.username }} (Broker: {{ user.broker }})</span>
+            <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}">
+              <button type="submit" class="btn btn-sm btn-danger">
+                <i class="fas fa-trash-alt"></i> Delete
+              </button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+
+        <!-- Pagination -->
+        {% if users.pages > 1 %}
+        <nav aria-label="User pagination">
+          <ul class="pagination justify-content-center mt-3">
+            <li class="page-item {% if not users.has_prev %}disabled{% endif %}">
+              <a class="page-link" href="?page={{ users.prev_num }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            {% for page_num in range(1, users.pages + 1) %}
+            <li class="page-item {% if users.page == page_num %}active{% endif %}">
+              <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+            </li>
+            {% endfor %}
+            <li class="page-item {% if not users.has_next %}disabled{% endif %}">
+              <a class="page-link" href="?page={{ users.next_num }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <p class="text-muted text-center">No users found.</p>
+        {% endif %}
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Real-Time Trading Chart -->
+<div class="col-md-12 mb-3">
+  <div class="card shadow-sm">
+    <div class="card-body text-center">
+      <h5 class="card-title text-warning"><i class="fas fa-chart-line"></i> Real-Time Stock Chart</h5>
+      <div class="d-flex justify-content-center align-items-center mb-3">
+        <label for="stockSymbol" class="me-2 fw-bold">Stock Symbol:</label>
+        <input type="text" id="stockSymbol" class="form-control w-25" value="NSE:INFY">
+        <button class="btn btn-primary ms-2">Update Chart</button>
+      </div>
+      <div id="chartContainer" style="height: 500px;"></div>
     </div>
   </div>
 </div>
@@ -149,25 +158,19 @@
 <script src="https://s3.tradingview.com/tv.js"></script>
 <script>
   // TradingView Widget for Live Chart
-  function updateChart() {
-    const symbol = document.getElementById("stockSymbol").value || "NSE:INFY";
-    new TradingView.widget({
-      container_id: "chartContainer",
-      autosize: true,
-      symbol: symbol,
-      interval: "5",
-      timezone: "Etc/UTC",
-      theme: "light",
-      style: "1",
-      locale: "en",
-      toolbar_bg: "#f1f3f6",
-      hide_side_toolbar: false,
-      allow_symbol_change: true,
-      studies: ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]
-    });
-  }
-
-  // Initialize the default chart
-  updateChart();
+  new TradingView.widget({
+    container_id: "chartContainer",
+    autosize: true,
+    symbol: "NSE:INFY",
+    interval: "5",
+    timezone: "Etc/UTC",
+    theme: "light",
+    style: "1",
+    locale: "en",
+    toolbar_bg: "#f1f3f6",
+    hide_side_toolbar: false,
+    allow_symbol_change: true,
+    studies: ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]
+  });
 </script>
 {% endblock %}
