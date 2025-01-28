@@ -29,12 +29,13 @@
       <h5 class="text-primary"><i class="fas fa-hand-point-right"></i> Manual Trade</h5>
       <form id="manual-trade-form">
         <div class="mb-3">
-          <label class="form-label">Select User</label>
-          <select id="manual_user" class="form-select">
+          <label class="form-label">Select Users</label>
+          <select id="manual_users" class="form-select" multiple>
             {% for u in users %}
             <option value="{{ u.id }}">{{ u.username }} ({{u.broker}})</option>
             {% endfor %}
           </select>
+          
         </div>
         <div class="mb-3">
           <label class="form-label">Symbol</label>
@@ -63,12 +64,13 @@
       <form id="auto-trade-form">
         <div class="row g-3 mb-2">
           <div class="col-md-4">
-            <label class="form-label">Select User</label>
-            <select id="auto_user" class="form-select">
+            <label class="form-label">Select Users</label>
+            <select id="auto_users" class="form-select" multiple>
               {% for u in users %}
               <option value="{{ u.id }}">{{ u.username }} ({{u.broker}})</option>
               {% endfor %}
             </select>
+            
           </div>
           <div class="col-md-4">
             <label class="form-label">Symbol</label>
@@ -167,11 +169,12 @@
 <script>
 function placeManualTrade() {
   const data = {
-    user_id: parseInt(document.getElementById('manual_user').value),
-    symbol: document.getElementById('manual_symbol').value,
-    transaction_type: document.getElementById('manual_transaction').value,
-    price: parseFloat(document.getElementById('manual_price').value || '0')
-  };
+  user_ids: Array.from(document.getElementById('manual_users').selectedOptions).map(opt => parseInt(opt.value)), 
+  symbol: document.getElementById('manual_symbol').value,
+  transaction_type: document.getElementById('manual_transaction').value,
+  price: parseFloat(document.getElementById('manual_price').value || '0')
+};
+
   fetch('/api/manual_trade', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -180,11 +183,12 @@ function placeManualTrade() {
   .then(r => r.json())
   .then(resp => alert(resp.message))
   .catch(err => console.error(err));
-}
+
+  }
 
 function startAutoTrade() {
-  const data = {
-    user_id: parseInt(document.getElementById('auto_user').value),
+    const data = {
+    user_ids: Array.from(document.getElementById('auto_users').selectedOptions).map(opt => parseInt(opt.value)),
     symbol: document.getElementById('auto_symbol').value,
     condition: document.getElementById('auto_condition').value,
     basis: document.getElementById('auto_basis').value,
@@ -193,7 +197,8 @@ function startAutoTrade() {
     stop_loss_type: document.getElementById('sl_type').value,
     stop_loss_value: parseFloat(document.getElementById('sl_value').value || '0')
   };
-  fetch('/api/auto_trade', {
+
+    fetch('/api/auto_trade', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify(data)
@@ -201,18 +206,19 @@ function startAutoTrade() {
   .then(r => r.json())
   .then(resp => alert(resp.message))
   .catch(err => console.error(err));
-}
+
+  }
 
 function stopAutoTrade() {
-  const user_id = parseInt(document.getElementById('auto_user').value);
+  const user_ids = Array.from(document.getElementById('auto_users').selectedOptions).map(opt => parseInt(opt.value));
   fetch('/api/stop_auto_trade', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({user_id})
+    body: JSON.stringify({ user_ids })
   })
   .then(r => r.json())
   .then(resp => alert(resp.message))
   .catch(err => console.error(err));
-}
+
 </script>
 {% endblock %}

@@ -5,6 +5,7 @@ import random
 import threading
 from datetime import datetime
 import functools
+from SmartApi import SmartConnect  # ✅ Ensure the AngelOne Smart API is installed
 
 from flask import (
     Flask, render_template, request, redirect,
@@ -136,7 +137,8 @@ class PlaceOrderForm(FlaskForm):
     """
     For the Admin to place a manual trade on behalf of a user.
     """
-    user_id = SelectField("User", coerce=int)  # we'll fill choices at runtime
+    user_ids = SelectMultipleField("Users", coerce=int)  # Allow multiple users
+
     symbol = StringField("Symbol", validators=[DataRequired(), Length(min=1, max=20)])
     quantity = IntegerField("Quantity (0 => use default)", default=0)
     transaction_type = SelectField("Type", choices=[("BUY", "Buy"), ("SELL", "Sell")])
@@ -198,16 +200,15 @@ def admin_dashboard():
     page = request.args.get('page', 1, type=int)
     per_page = 10  # Adjust as needed
     
-    # Fetch paginated data
-    users = TradingUser.query.paginate(page=page, per_page=per_page)
-    trades = Trade.query.paginate(page=page, per_page=per_page)
-    
+    users = TradingUser.query.paginate(page=page, per_page=per_page, error_out=False)
+    trades = Trade.query.paginate(page=page, per_page=per_page, error_out=False)
+
     return render_template(
         "admin_dashboard.html",
-        users=users,
-        trades=trades,
-        total_users=users.total,
-        total_trades=trades.total
+        users=users.items,  # ✅ Convert to list instead of pagination object
+        trades=trades.items,  # ✅ Same here
+        total_users=users.total if users.items else 0,  # ✅ Avoid errors
+        total_trades=trades.total if trades.items else 0
     )
 
 
@@ -316,30 +317,48 @@ def place_order():
     # 1) Manual trade form
     form = PlaceOrderForm()
     trading_users = TradingUser.query.order_by(TradingUser.username.asc()).all()
-    form.user_id.choices = [(u.id, f"{u.username} ({u.broker})") for u in trading_users]
+    form.user_ids.choices = [(u.id, f"{u.username} ({u.broker})") for u in trading_users]
+
 
     if form.validate_on_submit():
-        user = TradingUser.query.get(form.user_id.data)
-        if not user:
-            flash("User not found.", "danger")
+        selected_users = TradingUser.query.filter(TradingUser.id.in_(form.user_ids.data)).all()
+        if not selected_users:
+            flash("No valid users selected!", "danger")
             return redirect(url_for("place_order"))
 
+
         # If quantity=0 => fallback to user.default_quantity
-        qty = form.quantity.data
-        if qty <= 0:
-            qty = user.default_quantity
+        for user in selected_users:
+            qty = form.quantity.data if form.quantity.data > 0 else user.default_quantity
+
 
         broker_order_id = f"{user.broker.upper()}-{int(time.time())}"
-        new_trade = Trade(
-            symbol=form.symbol.data,
-            quantity=qty,
-            transaction_type=form.transaction_type.data,
-            price=form.price.data,
-            broker_order_id=broker_order_id,
-            user_id=user.id
-        )
-        db.session.add(new_trade)
+        for user in selected_users:
+            qty = form.quantity.data if form.quantity.data > 0 else user.default_quantity
+            broker_order_id = f"{user.broker.upper()}-{int(time.time())}"
+
+            new_trade = Trade(
+                symbol=form.symbol.data,
+                quantity=qty,
+                transaction_type=form.transaction_type.data,
+                price=form.price.data,
+                broker_order_id=broker_order_id,
+                user_id=user.id
+            )
+
+            db.session.add(new_trade)
+
+            # Emit socket event for real-time trade update
+            socketio.emit('new_trade', {
+                "symbol": new_trade.symbol,
+                "price": new_trade.price,
+                "broker_order_id": new_trade.broker_order_id,
+                "username": user.username,
+                "broker": user.broker
+            }, broadcast=True)
+
         db.session.commit()
+
 
         # Emit socket event
         socketio.emit('new_trade', {
@@ -493,16 +512,21 @@ def api_auto_trade():
     }
     """
     data = request.get_json()
-    user_id = data.get("user_id")
-    user = TradingUser.query.get(user_id)
-    if not user:
-        return jsonify({"success": False, "message": "Invalid user_id"}), 400
+    user_ids = data.get("user_ids", [])
+    selected_users = TradingUser.query.filter(TradingUser.id.in_(user_ids)).all()
+    if not selected_users:
+        return jsonify({"success": False, "message": "No valid users selected."}), 400
 
-    # Fetch user-specific details
-    quantity = user.default_quantity
-    broker = user.broker
-    api_key = user.api_key
-    totp_token = user.totp_token
+
+    if not selected_users:
+        return jsonify({"success": False, "message": "No valid users selected."}), 400
+
+    for user in selected_users:  # ✅ Ensure `user` is defined inside loop
+        quantity = user.default_quantity
+        broker = user.broker
+        api_key = user.api_key
+        totp_token = user.totp_token
+
 
     # Validate trade and stop-loss details
     symbol = data.get("symbol")
@@ -522,7 +546,8 @@ def api_auto_trade():
         session_data = obj.generateSession(user.username, totp_token)
         feed_token = obj.getfeedToken()
 
-        def monitor_auto_trade():
+        def monitor_auto_trade(user):  # ✅ Add user parameter
+
             while True:
                 live_price = angel_fetch_live_price(symbol)
                 if live_price is None:
@@ -554,7 +579,8 @@ def api_auto_trade():
                         order_id = obj.placeOrder(orderparams)
 
                         # Monitor Stop-Loss
-                        monitor_stop_loss(symbol, live_price, stop_loss_type, stop_loss_value, quantity)
+                        monitor_stop_loss(user, symbol, live_price, stop_loss_type, stop_loss_value, quantity)
+
                         break
                     except Exception as e:
                         print(f"Error placing order: {e}")
@@ -562,7 +588,8 @@ def api_auto_trade():
 
                 time.sleep(5)
 
-        def monitor_stop_loss(symbol, entry_price, sl_type, sl_value, qty):
+        def monitor_stop_loss(user, symbol, entry_price, sl_type, sl_value, qty):
+
             while True:
                 live_price = angel_fetch_live_price(symbol)
                 if live_price is None:
@@ -598,7 +625,13 @@ def api_auto_trade():
                         print(f"Error placing stop-loss order: {e}")
                         break
 
-        threading.Thread(target=monitor_auto_trade, daemon=True).start()
+            for user in selected_users:
+                if auto_trade_flags.get(user.id, False):
+                    continue  # Skip if auto-trade is already running
+                auto_trade_flags[user.id] = True
+                threading.Thread(target=monitor_auto_trade, args=(user,), daemon=True).start()
+
+
         return jsonify({"success": True, "message": "Auto trade started with stop-loss."}), 200
 
     # Placeholder for Shonnay Broker
