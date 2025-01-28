@@ -123,6 +123,7 @@ class AdminLoginForm(FlaskForm):
     password = PasswordField("Admin Password", validators=[DataRequired()])
     submit = SubmitField("Admin Login")
 
+
 class RegisterTradingUserForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired(), Length(min=2, max=64)])
     password = PasswordField("Password", validators=[DataRequired(), Length(min=3)])
