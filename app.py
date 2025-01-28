@@ -60,6 +60,7 @@ class TradingUser(db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
 
+
     broker = db.Column(db.String(20), nullable=False)     # angel or shonnay
     api_key = db.Column(db.String(128), nullable=False)   # for "angel" or dummy
     totp_token = db.Column(db.String(64), nullable=True)  # optional
@@ -194,23 +195,21 @@ def home():
 @app.route("/admin_dashboard")
 @admin_required
 def admin_dashboard():
-    try:
-        # Fetch required data
-        total_users = TradingUser.query.count()
-        total_trades = Trade.query.count()
-        users = TradingUser.query.all()
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Adjust as needed
+    
+    # Fetch paginated data
+    users = TradingUser.query.paginate(page=page, per_page=per_page)
+    trades = Trade.query.paginate(page=page, per_page=per_page)
+    
+    return render_template(
+        "admin_dashboard.html",
+        users=users,
+        trades=trades,
+        total_users=users.total,
+        total_trades=trades.total
+    )
 
-        # Pass data to the template
-        return render_template(
-            "admin_dashboard.html",
-            total_users=total_users,
-            total_trades=total_trades,
-            users=users,
-        )
-    except Exception as e:
-        app.logger.error(f"Error in admin_dashboard: {e}")
-        flash("An error occurred while loading the dashboard.", "danger")
-        return redirect(url_for("home"))
 
 ##############################################################################
 # Register Trading Users (single or bulk)
