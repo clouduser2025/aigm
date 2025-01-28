@@ -25,6 +25,8 @@ from wtforms import (
 from flask_wtf.csrf import CSRFProtect
 
 
+
+
 ##############################################################################
 # If you use .env, load it:
 # from dotenv import load_dotenv
@@ -40,7 +42,6 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 csrf = CSRFProtect(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
-csrf = CSRFProtect(app)
 
 ##############################################################################
 # Single Admin Credentials
@@ -254,12 +255,11 @@ def delete_all_users():
         flash(f"Error deleting users: {str(e)}", "danger")
     return redirect(url_for("admin_dashboard"))
 
-from flask_wtf.csrf import CSRFProtect
+
 
 csrf = CSRFProtect(app)
 
 @app.route("/delete_user/<int:user_id>", methods=["POST"])
-@csrf.exempt  # Correctly disable CSRF for this route
 def delete_user(user_id):
     user = TradingUser.query.get(user_id)
     if not user:
@@ -314,35 +314,21 @@ def bulk_register():
 @app.route("/place_order", methods=["GET", "POST"])
 @admin_required
 def place_order():
-    """
-    A single page with:
-     - Manual Order Form
-     - Auto Trading (Buy) config
-     - Stop-Loss config
-     - Explanation tab
-    """
-    # 1) Manual trade form
     form = PlaceOrderForm()
+
+    # ✅ Ensure user list is loaded before validation
     trading_users = TradingUser.query.order_by(TradingUser.username.asc()).all()
     form.user_ids.choices = [(u.id, f"{u.username} ({u.broker})") for u in trading_users]
 
-
-    if form.validate_on_submit():
+    if form.validate_on_submit():  # ✅ Validate only after choices are set
         selected_users = TradingUser.query.filter(TradingUser.id.in_(form.user_ids.data)).all()
         if not selected_users:
             flash("No valid users selected!", "danger")
             return redirect(url_for("place_order"))
 
-
-        # If quantity=0 => fallback to user.default_quantity
         for user in selected_users:
             qty = form.quantity.data if form.quantity.data > 0 else user.default_quantity
-
-
-        broker_order_id = f"{user.broker.upper()}-{int(time.time())}"
-        for user in selected_users:
-            qty = form.quantity.data if form.quantity.data > 0 else user.default_quantity
-            broker_order_id = f"{user.broker.upper()}-{int(time.time())}"
+            broker_order_id = f"{user.broker.upper()}-{int(time.time())}"  # ✅ Fix placement
 
             new_trade = Trade(
                 symbol=form.symbol.data,
@@ -355,7 +341,7 @@ def place_order():
 
             db.session.add(new_trade)
 
-            # Emit socket event for real-time trade update
+            # ✅ Only emit after commit
             socketio.emit('new_trade', {
                 "symbol": new_trade.symbol,
                 "price": new_trade.price,
@@ -364,22 +350,13 @@ def place_order():
                 "broker": user.broker
             }, broadcast=True)
 
-        db.session.commit()
-
-
-        # Emit socket event
-        socketio.emit('new_trade', {
-            "symbol": new_trade.symbol,
-            "price": new_trade.price,
-            "broker_order_id": new_trade.broker_order_id,
-            "username": user.username,
-            "broker": user.broker
-        }, broadcast=True)
+        db.session.commit()  # ✅ Commit only once at the end
 
         flash("Manual trade placed!", "success")
         return redirect(url_for("view_trades"))
 
     return render_template("place_order.html", form=form, users=trading_users)
+
 
 ##############################################################################
 # View All Trades

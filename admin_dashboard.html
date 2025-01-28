@@ -87,12 +87,13 @@
         <p>View, delete all, or delete specific users.</p>
 
         <!-- Delete All Users Button -->
-        <form method="POST" action="{{ url_for('delete_all_users') }}" class="mb-3">
-          {{ csrf_token() }} <!-- CSRF token added for security -->
+        <form method="POST" action="{{ url_for('delete_all_users') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-danger">
-            <i class="fas fa-trash-alt"></i> Delete All Users
+              <i class="fas fa-trash-alt"></i> Delete All Users
           </button>
-        </form>
+      </form>
+      
 
         {% if users.items %}
         <!-- List Users with Delete Option -->
@@ -101,11 +102,12 @@
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>{{ user.username }} (Broker: {{ user.broker }})</span>
             <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}">
-              {{ csrf_token() }}
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-sm btn-danger">
                   <i class="fas fa-trash-alt"></i> Delete
               </button>
           </form>
+          
           
           </li>
           {% endfor %}
