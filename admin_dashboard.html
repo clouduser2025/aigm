@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container-fluid py-4">
-    <h1 class="text-center text-light bg-dark p-3 rounded shadow">
+    <h1 class="text-center text-light bg-dark p-3 rounded shadow-lg">
         <i class="fas fa-tachometer-alt"></i> Admin Dashboard
     </h1>
     <p class="text-center text-muted">Welcome, admin! Manage your multi-broker trading below.</p>
@@ -11,7 +11,7 @@
         {% if messages %}
             <div class="alert-container">
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{{ category }} alert-dismissible fade show text-center shadow" role="alert">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -20,57 +20,57 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Dashboard Sections -->
+    <!-- Dashboard Sections with Trading Colors -->
     <div class="row g-4">
-        <!-- Register Users -->
+        <!-- Register Users (Green for Growth) -->
         <div class="col-md-3">
-            <div class="card bg-success text-white shadow-lg rounded">
+            <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #28a745, #1f8b4d);">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-user-plus"></i> Register Users</h4>
                     <p>Register a single user or bulk upload a CSV file.</p>
-                    <a href="{{ url_for('register_user') }}" class="btn btn-light btn-sm shadow">
+                    <a href="{{ url_for('register_user') }}" class="btn btn-dark btn-sm shadow-lg">
                         <i class="fas fa-user-plus"></i> Register
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Manage Users -->
+        <!-- Manage Users (Blue for Info) -->
         <div class="col-md-3">
-            <div class="card bg-info text-white shadow-lg rounded">
+            <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #007bff, #0056b3);">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-users"></i> Manage Users</h4>
                     <p>View registered users and manage their accounts.</p>
-                    <a href="{{ url_for('view_users') }}" class="btn btn-dark btn-sm shadow">
+                    <a href="{{ url_for('view_users') }}" class="btn btn-dark btn-sm shadow-lg">
                         <i class="fas fa-users"></i> View Users
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Trades -->
+        <!-- Trades (Red for Sell Transactions) -->
         <div class="col-md-3">
-            <div class="card bg-primary text-white shadow-lg rounded">
+            <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #dc3545, #c82333);">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-shopping-cart"></i> Trades</h4>
                     <p>Place manual or auto trades, or view trade history.</p>
-                    <a href="{{ url_for('place_order') }}" class="btn btn-light btn-sm shadow">
+                    <a href="{{ url_for('place_order') }}" class="btn btn-light btn-sm shadow-lg">
                         <i class="fas fa-shopping-cart"></i> Place Order
                     </a>
-                    <a href="{{ url_for('view_trades') }}" class="btn btn-dark btn-sm shadow">
+                    <a href="{{ url_for('view_trades') }}" class="btn btn-dark btn-sm shadow-lg">
                         <i class="fas fa-list"></i> View Trades
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Live Chart -->
+        <!-- Live Chart (Yellow for Alerts) -->
         <div class="col-md-3">
-            <div class="card bg-warning text-dark shadow-lg rounded">
+            <div class="card shadow-lg border-0 rounded text-dark" style="background: linear-gradient(135deg, #ffc107, #d39e00);">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-chart-line"></i> Live Chart</h4>
                     <p>Monitor real-time stock prices with TradingView.</p>
-                    <a href="{{ url_for('live_chart') }}" class="btn btn-dark btn-sm shadow">
+                    <a href="{{ url_for('live_chart') }}" class="btn btn-dark btn-sm shadow-lg">
                         <i class="fas fa-chart-bar"></i> Go to Live Chart
                     </a>
                 </div>
@@ -78,10 +78,10 @@
         </div>
     </div>
 
-    <!-- Stats -->
+    <!-- Stats (Dark Theme for Terminal Feel) -->
     <div class="row mt-4">
         <div class="col-md-3 offset-md-3">
-            <div class="card bg-dark text-white shadow-lg rounded">
+            <div class="card shadow-lg border-0 rounded text-white bg-dark">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-database"></i> Stats</h4>
                     <p>Total Users: <strong>{{ total_users }}</strong></p>
@@ -91,16 +91,16 @@
         </div>
     </div>
 
-    <!-- Real-Time Stock Chart -->
+    <!-- Real-Time Stock Chart (Dark Themed) -->
     <div class="row mt-4">
         <div class="col-md-12">
-            <div class="card shadow-lg rounded" style="background: #1a1a1a; color: white;">
+            <div class="card shadow-lg rounded border-0" style="background: #121212; color: white;">
                 <div class="card-body text-center">
                     <h5 class="card-title text-warning"><i class="fas fa-chart-line"></i> Real-Time Stock Chart</h5>
                     <div class="d-flex justify-content-center align-items-center mb-3">
                         <label for="stockSymbol" class="me-2 fw-bold">Stock Symbol:</label>
                         <input type="text" id="stockSymbol" class="form-control w-25 text-dark" value="NSE:INFY">
-                        <button class="btn btn-primary ms-2" onclick="updateChart()">Update Chart</button>
+                        <button class="btn btn-primary ms-2 shadow-lg" onclick="updateChart()">Update Chart</button>
                     </div>
                     <div id="chartContainer" style="height: 500px;"></div>
                 </div>
@@ -124,7 +124,7 @@ function updateChart() {
         "theme": "dark",
         "style": "1",
         "locale": "en",
-        "toolbar_bg": "#1a1a1a",
+        "toolbar_bg": "#121212",
         "hide_side_toolbar": false,
         "allow_symbol_change": true,
         "studies": ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]
