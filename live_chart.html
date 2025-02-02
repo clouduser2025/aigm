@@ -1,38 +1,191 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Chart - Trading Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <div class="container py-5">
-        <h1 class="text-center text-primary mb-4">
-            Live Chart for {{ tradingsymbol }} ({{ exchange }})
-        </h1>
-        <div class="card shadow-sm p-4">
-            <div id="chart_container" style="height: 500px;"></div>
-        </div>
-        <a href="/" class="btn btn-secondary mt-3 w-100">Back to Home</a>
-    </div>
-    <script src="https://s3.tradingview.com/tv.js"></script>
-    <script>
-        // TradingView widget
-        new TradingView.widget({
-            container_id: "chart_container",
-            autosize: true,
-            symbol: "{{ exchange }}:{{ tradingsymbol }}", // Example: NSE:INFY
-            interval: "5",  // 5-minute interval
-            timezone: "Etc/UTC",
-            theme: "light",
-            style: "1",
-            locale: "en",
-            toolbar_bg: "#f1f3f6",
-            hide_side_toolbar: false,
-            allow_symbol_change: true,
-            studies: ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]
-        });
-    </script>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="text-center text-primary mb-4">
+    <i class="fas fa-chart-line"></i> Live Market Chart with Broker Differentiation
+  </h2>
+  <canvas id="priceChart" style="max-height:400px;"></canvas>
+  <div id="chart_container" style="height: 500px; width: 100%; margin-top: 20px;"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<!-- Include Chart.js and the annotation plugin -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0"></script>
+<!-- Include Socket.IO client -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// Dummy initial data for two brokers
+let angelCurrentPrice = 105;
+let shonnayCurrentPrice = 107;
+let angelTarget = 115;
+let shonnayTarget = 113;
+let angelStopLoss = 95;
+let shonnayStopLoss = 97;
+
+// Dummy datasets (each with 12 points)
+let angelData = [104,105,106,107,106,105,106,107,108,107,106,105];
+let shonnayData = [106,107,108,107,106,105,104,105,106,107,108,107];
+
+const ctx = document.getElementById('priceChart').getContext('2d');
+const priceChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: ['09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00'],
+    datasets: [
+      {
+        label: 'Angel Market Price',
+        data: angelData,
+        borderColor: 'blue',
+        fill: false,
+        tension: 0.1
+      },
+      {
+        label: 'Shonnay Market Price',
+        data: shonnayData,
+        borderColor: 'orange',
+        fill: false,
+        tension: 0.1
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: { beginAtZero: false, title: { display: true, text: 'Price' } },
+      x: { title: { display: true, text: 'Time' } }
+    },
+    plugins: {
+      annotation: {
+        annotations: {
+          // Angel annotations
+          angelCurrentLine: {
+            type: 'line',
+            yMin: angelCurrentPrice,
+            yMax: angelCurrentPrice,
+            borderColor: 'blue',
+            borderWidth: 2,
+            label: { content: 'Angel Current', enabled: true, position: 'end' }
+          },
+          angelTargetLine: {
+            type: 'line',
+            yMin: angelTarget,
+            yMax: angelTarget,
+            borderColor: 'green',
+            borderWidth: 2,
+            borderDash: [6,6],
+            label: { content: 'Angel Target', enabled: true, position: 'end' }
+          },
+          angelStopLossLine: {
+            type: 'line',
+            yMin: angelStopLoss,
+            yMax: angelStopLoss,
+            borderColor: 'red',
+            borderWidth: 2,
+            borderDash: [6,6],
+            label: { content: 'Angel Stop Loss', enabled: true, position: 'end' }
+          },
+          // Shonnay annotations
+          shonnayCurrentLine: {
+            type: 'line',
+            yMin: shonnayCurrentPrice,
+            yMax: shonnayCurrentPrice,
+            borderColor: 'orange',
+            borderWidth: 2,
+            label: { content: 'Shonnay Current', enabled: true, position: 'end' }
+          },
+          shonnayTargetLine: {
+            type: 'line',
+            yMin: shonnayTarget,
+            yMax: shonnayTarget,
+            borderColor: 'darkgreen',
+            borderWidth: 2,
+            borderDash: [6,6],
+            label: { content: 'Shonnay Target', enabled: true, position: 'start' }
+          },
+          shonnayStopLossLine: {
+            type: 'line',
+            yMin: shonnayStopLoss,
+            yMax: shonnayStopLoss,
+            borderColor: 'darkred',
+            borderWidth: 2,
+            borderDash: [6,6],
+            label: { content: 'Shonnay Stop Loss', enabled: true, position: 'start' }
+          }
+        }
+      }
+    }
+  }
+});
+
+// Socket.IO connection
+const socket = io.connect();
+
+// Listen for new trade events and update the corresponding broker's dataset and annotation
+socket.on('new_trade', function(data) {
+  console.log("New trade:", data);
+  if(data.broker.lower() === "angel" or data.broker.lower() === "angel"):
+    angelCurrentPrice = data.price;
+    priceChart.options.plugins.annotation.annotations.angelCurrentLine.yMin = angelCurrentPrice;
+    priceChart.options.plugins.annotation.annotations.angelCurrentLine.yMax = angelCurrentPrice;
+    angelData.push(data.price);
+    if(angelData.length > 12) {
+      angelData.shift();
+      priceChart.data.labels.shift();
+    }
+  else if(data.broker.lower() == "shonnay"):
+    shonnayCurrentPrice = data.price;
+    priceChart.options.plugins.annotation.annotations.shonnayCurrentLine.yMin = shonnayCurrentPrice;
+    priceChart.options.plugins.annotation.annotations.shonnayCurrentLine.yMax = shonnayCurrentPrice;
+    shonnayData.push(data.price);
+    if(shonnayData.length > 12) {
+      shonnayData.shift();
+    }
+  priceChart.update();
+});
+
+// Listen for market update events per broker
+socket.on('market_update', function(data) {
+  if(data.broker.lower() == "angel"):
+    angelCurrentPrice = data.currentPrice;
+    angelTarget = data.targetPrice;
+    angelStopLoss = data.stopLossPrice;
+    priceChart.options.plugins.annotation.annotations.angelCurrentLine.yMin = angelCurrentPrice;
+    priceChart.options.plugins.annotation.annotations.angelCurrentLine.yMax = angelCurrentPrice;
+    priceChart.options.plugins.annotation.annotations.angelTargetLine.yMin = angelTarget;
+    priceChart.options.plugins.annotation.annotations.angelTargetLine.yMax = angelTarget;
+    priceChart.options.plugins.annotation.annotations.angelStopLossLine.yMin = angelStopLoss;
+    priceChart.options.plugins.annotation.annotations.angelStopLossLine.yMax = angelStopLoss;
+  else if(data.broker.lower() == "shonnay"):
+    shonnayCurrentPrice = data.currentPrice;
+    shonnayTarget = data.targetPrice;
+    shonnayStopLoss = data.stopLossPrice;
+    priceChart.options.plugins.annotation.annotations.shonnayCurrentLine.yMin = shonnayCurrentPrice;
+    priceChart.options.plugins.annotation.annotations.shonnayCurrentLine.yMax = shonnayCurrentPrice;
+    priceChart.options.plugins.annotation.annotations.shonnayTargetLine.yMin = shonnayTarget;
+    priceChart.options.plugins.annotation.annotations.shonnayTargetLine.yMax = shonnayTarget;
+    priceChart.options.plugins.annotation.annotations.shonnayStopLossLine.yMin = shonnayStopLoss;
+    priceChart.options.plugins.annotation.annotations.shonnayStopLossLine.yMax = shonnayStopLoss;
+  priceChart.update();
+});
+</script>
+
+<!-- TradingView Widget -->
+<script src="https://s3.tradingview.com/tv.js"></script>
+<script>
+  new TradingView.widget({
+    container_id: "chart_container",
+    autosize: true,
+    symbol: "{{ exchange }}:{{ tradingsymbol }}", // e.g., NSE:INFY
+    interval: "5",
+    timezone: "Etc/UTC",
+    theme: "light",
+    style: "1",
+    locale: "en",
+    toolbar_bg: "#f1f3f6",
+    hide_side_toolbar: false,
+    allow_symbol_change: true,
+    studies: ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]
+  });
+</script>
+{% endblock %}

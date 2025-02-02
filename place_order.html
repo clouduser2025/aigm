@@ -4,7 +4,6 @@
   <h2 class="text-center text-primary mb-4">
     <i class="fas fa-shopping-cart"></i> Place Orders / Auto / Stop-Loss
   </h2>
-
   <ul class="nav nav-tabs" id="orderTabs" role="tablist">
     <li class="nav-item" role="presentation">
       <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">
@@ -22,15 +21,13 @@
       </button>
     </li>
   </ul>
-
   <div class="tab-content p-4 bg-white border rounded-bottom">
     <!-- MANUAL TRADE -->
     <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
       <h5 class="text-primary"><i class="fas fa-hand-point-right"></i> Manual Trade</h5>
       <form id="manual-trade-form">
         <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token() }}">
-    
-        <div id="manual_users" class="border p-2 rounded">
+        <div id="manual_users" class="border p-2 rounded mb-3">
           {% for u in users %}
           <div class="form-check">
             <input class="form-check-input" type="checkbox" value="{{ u.id }}" id="manual_user_{{ u.id }}">
@@ -40,7 +37,6 @@
           </div>
           {% endfor %}
         </div>
-        
         <div class="mb-3">
           <label class="form-label">Symbol</label>
           <input type="text" id="manual_symbol" class="form-control" placeholder="e.g. INFY">
@@ -61,13 +57,11 @@
         </button>
       </form>
     </div>
-
     <!-- AUTO TRADING WITH STOP-LOSS -->
     <div class="tab-pane fade" id="auto" role="tabpanel" aria-labelledby="auto-tab">
       <h5 class="text-success"><i class="fas fa-robot"></i> Auto Trade (Buy) with Stop-Loss</h5>
       <form id="auto-trade-form">
         <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token() }}">
-    
         <div class="row g-3 mb-2">
           <div class="col-md-4">
             <label class="form-label">Select Users</label>
@@ -81,12 +75,10 @@
               </div>
               {% endfor %}
             </div>
-            
-            
           </div>
           <div class="col-md-4">
             <label class="form-label">Symbol</label>
-            <input type="text" id="auto_symbol" class="form-control" placeholder="INFY">
+            <input type="text" id="auto_symbol" class="form-control" placeholder="e.g. INFY">
           </div>
           <div class="col-md-4">
             <label class="form-label">Condition</label>
@@ -107,7 +99,7 @@
           </div>
           <div class="col-md-4">
             <label class="form-label">Threshold Value</label>
-            <input type="number" step="0.01" id="auto_threshold" class="form-control" placeholder="1500">
+            <input type="number" step="0.01" id="auto_threshold" class="form-control" placeholder="e.g. 1500">
           </div>
           <div class="col-md-4">
             <label class="form-label">Reference Price</label>
@@ -129,11 +121,14 @@
             <input type="number" step="0.01" id="sl_value" class="form-control" placeholder="Enter SL value">
           </div>
         </div>
-        <button type="button" class="btn btn-success me-2 mt-2" onclick="startAutoTrade()"><i class="fas fa-play"></i> Start Auto</button>
-        <button type="button" class="btn btn-danger mt-2" onclick="stopAutoTrade()"><i class="fas fa-stop"></i> Stop Auto</button>
+        <button type="button" class="btn btn-success me-2 mt-2" onclick="startAutoTrade()">
+          <i class="fas fa-play"></i> Start Auto
+        </button>
+        <button type="button" class="btn btn-danger mt-2" onclick="stopAutoTrade()">
+          <i class="fas fa-stop"></i> Stop Auto
+        </button>
       </form>
     </div>
-
     <!-- EXPLANATION -->
     <div class="tab-pane fade" id="explain" role="tabpanel" aria-labelledby="explain-tab">
       <h5><i class="fas fa-info-circle"></i> Explanation</h5>
@@ -148,47 +143,70 @@
       </ul>
       <h6><strong>Stop-Loss:</strong></h6>
       <ul>
-        <li><strong>Percentage:</strong> Stop-loss is calculated as a percentage of the entry price.
+        <li><strong>Percentage:</strong> Trailing SL = base + (highest - base) * (SL%/100).  
           <ul>
-            <li>Example: Entry price = 1000, SL = 5%. SL triggers at 950.</li>
+            <li>Example: Entry = 100; price rises to 110; with 50% SL, SL = 100 + (110-100)*0.5 = 105.</li>
           </ul>
         </li>
-        <li><strong>Points:</strong> Stop-loss is calculated by subtracting points from the entry price.
+        <li><strong>Points:</strong> Trailing SL = highest - points value.  
           <ul>
-            <li>Example: Entry price = 1000, SL = 10 points. SL triggers at 990.</li>
+            <li>Example: Entry = 100; if price rises to 110 and SL is 10 points, SL = 110 - 10 = 100.</li>
           </ul>
         </li>
-        <li><strong>Fixed:</strong> Stop-loss is set at a fixed price value.
+        <li><strong>Fixed:</strong> SL is set at a constant value.  
           <ul>
-            <li>Example: Fixed SL = 950. SL triggers when price drops to 950 or lower.</li>
+            <li>Example: Fixed SL = 950 triggers when price drops to 950 or below.</li>
           </ul>
         </li>
       </ul>
-      <h6><strong>Auto Trade Workflow:</strong></h6>
+      <h6><strong>Auto Trade Workflow Examples:</strong></h6>
       <ul>
-        <li><strong>Example 1:</strong> If the threshold is set to 1500 (Condition 1), and the live price is 1500 or above, the system places a BUY trade.</li>
-        <li><strong>Example 2:</strong> For a trailing SL with percentage:
+        <li><strong>Example 1 (Standard Fixed SL):</strong>
           <ul>
-            <li>Entry price = 1000, SL = 5%. If price moves to 1050, new SL = 997.5 (1050 * 0.95).</li>
-            <li>If price drops to 997.5 or below, the system places a SELL trade.</li>
+            <li>Entry Price: 100; SL Type: Fixed; SL Value: 95.</li>
+            <li>If the price falls to 95 or below, a SELL order is triggered immediately.</li>
+          </ul>
+        </li>
+        <li><strong>Example 2 (Trailing SL with Percentage):</strong>
+          <ul>
+            <li>Entry Price: 100; SL Type: Percentage; SL Value: 50.</li>
+            <li>If price rises to 110, trailing SL = 100 + (110-100)*0.5 = 105.</li>
+            <li>If later the price reaches 120, trailing SL becomes 110. A drop to 110 triggers a SELL order.</li>
+          </ul>
+        </li>
+        <li><strong>Example 3 (Trailing SL with Negative Points Condition):</strong>
+          <ul>
+            <li>Entry Price: 100; SL Type: Percentage; SL Value: 50; Points Condition: -2.</li>
+            <li>If the price dips to 98, the base updates from 100 to 98.</li>
+            <li>If the price then rises to 104, trailing SL = 98 + (104-98)*0.5 = 101. A drop to 101 triggers a SELL order.</li>
+          </ul>
+        </li>
+        <li><strong>Example 4 (Trailing SL with Points):</strong>
+          <ul>
+            <li>Entry Price: 100; SL Type: Points; SL Value: 10.</li>
+            <li>If price rises to 110, trailing SL = 110 - 10 = 100.</li>
+            <li>A drop to 100 triggers the SELL order.</li>
+          </ul>
+        </li>
+        <li><strong>Example 5 (Combined Logic):</strong>
+          <ul>
+            <li>Entry Price: 100; SL Type: Percentage; SL Value: 50; Points Condition: -0.2.</li>
+            <li>The trailing SL follows the percentage rule until a dip updates the base, ensuring even small negative movements adjust the SL.</li>
           </ul>
         </li>
       </ul>
     </div>
   </div>
 </div>
-
 <script>
 function placeManualTrade() {
   const user_ids = Array.from(document.querySelectorAll('#manual_users .form-check-input:checked')).map(input => parseInt(input.value));
-
   const data = {
     user_ids: user_ids,
     symbol: document.getElementById('manual_symbol').value,
     transaction_type: document.getElementById('manual_transaction').value,
     price: parseFloat(document.getElementById('manual_price').value || '0')
   };
-
   fetch('/api/manual_trade', {
       method: 'POST',
       headers: { 
@@ -198,12 +216,8 @@ function placeManualTrade() {
       body: JSON.stringify(data)
   });
 }
-
-
-
 function startAutoTrade() {
   const user_ids = Array.from(document.querySelectorAll('#auto_users .form-check-input:checked')).map(input => parseInt(input.value));
-
   const data = {
     user_ids: user_ids,
     symbol: document.getElementById('auto_symbol').value,
@@ -214,7 +228,6 @@ function startAutoTrade() {
     stop_loss_type: document.getElementById('sl_type').value,
     stop_loss_value: parseFloat(document.getElementById('sl_value').value || '0')
   };
-
   fetch('/api/auto_trade', {
     method: 'POST',
     headers: { 
@@ -224,10 +237,8 @@ function startAutoTrade() {
     body: JSON.stringify(data)
   });
 }
-
 function stopAutoTrade() {
   const user_ids = Array.from(document.querySelectorAll('#auto_users .form-check-input:checked')).map(input => parseInt(input.value));
-
   fetch('/api/stop_auto_trade', {
     method: 'POST',
     headers: { 
@@ -237,7 +248,5 @@ function stopAutoTrade() {
     body: JSON.stringify({ user_ids })
   });
 }
-
-
 </script>
 {% endblock %}
