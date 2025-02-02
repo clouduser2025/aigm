@@ -149,15 +149,21 @@ class PlaceOrderForm(FlaskForm):
     submit = SubmitField("Place Order")
 
 @app.route("/view_users")
-@admin_required  # Ensure this is not blocking access
+@admin_required  # Ensure this is correctly defined
 def view_users():
     order = request.args.get("order", "desc")  # Get sort order
-    if order == "asc":
-        users = TradingUser.query.order_by(TradingUser.created_at.asc()).all()
-    else:
-        users = TradingUser.query.order_by(TradingUser.created_at.desc()).all()
+    try:
+        if order == "asc":
+            users = TradingUser.query.order_by(TradingUser.created_at.asc()).all()
+        else:
+            users = TradingUser.query.order_by(TradingUser.created_at.desc()).all()
 
-    return render_template("view_users.html", users=users)
+        return render_template("view_users.html", users=users)
+    
+    except Exception as e:
+        app.logger.error(f"Error loading users: {str(e)}")
+        return "Error loading users.", 500
+
 
 
 @app.route("/delete_user/<int:user_id>", methods=["POST"])
