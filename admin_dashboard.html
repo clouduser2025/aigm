@@ -1,127 +1,135 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="text-center py-4">
-  <h1 class="text-primary"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
-  <p class="lead">Welcome, admin! Manage your multi-broker trading below.</p>
-</div>
+<div class="container-fluid py-4">
+    <h1 class="text-center text-light bg-dark p-3 rounded shadow">
+        <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+    </h1>
+    <p class="text-center text-muted">Welcome, admin! Manage your multi-broker trading below.</p>
 
-<!-- Flash Messages -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="alert-container">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-{% endwith %}
-
-<div class="row">
-  <!-- Register Users Section -->
-  <div class="col-md-3 mb-3">
-    <div class="card shadow-sm h-100">
-      <div class="card-body text-center">
-        <h4 class="card-title text-success"><i class="fas fa-user-plus"></i> Register Users</h4>
-        <p>Register a single user or bulk upload a CSV file.</p>
-        <a href="{{ url_for('register_user') }}" class="btn btn-success">
-          <i class="fas fa-user-plus"></i> Register
-        </a>
-      </div>
-    </div>
-  </div>
-<!-- Add this section inside the <div class="row"> where other sections exist -->
-  <div class="col-md-3 mb-3">
-    <div class="card shadow-sm h-100">
-      <div class="card-body text-center">
-        <h4 class="card-title text-info"><i class="fas fa-users"></i> Manage Users</h4>
-        <p>View registered users and manage their accounts.</p>
-        <a href="{{ url_for('view_users') }}" class="btn btn-info">
-          <i class="fas fa-users"></i> View Users
-        </a>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Trades Section -->
-  <div class="col-md-3 mb-3">
-    <div class="card shadow-sm h-100">
-      <div class="card-body text-center">
-        <h4 class="card-title text-info"><i class="fas fa-shopping-cart"></i> Trades</h4>
-        <p>Place manual or auto trades, or view the entire trades list.</p>
-        <a href="{{ url_for('place_order') }}" class="btn btn-primary mb-2">
-          <i class="fas fa-shopping-cart"></i> Place Order
-        </a>
-        <a href="{{ url_for('view_trades') }}" class="btn btn-info">
-          <i class="fas fa-list"></i> View Trades
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Live Chart Section -->
-  <div class="col-md-3 mb-3">
-    <div class="card shadow-sm h-100">
-      <div class="card-body text-center">
-        <h4 class="card-title text-warning"><i class="fas fa-chart-line"></i> Live Chart</h4>
-        <p>Monitor real-time stock prices with TradingView charts.</p>
-        <a href="{{ url_for('live_chart') }}" class="btn btn-warning">
-          <i class="fas fa-chart-bar"></i> Go to Live Chart
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Stats Section -->
-  <div class="col-md-3 mb-3">
-    <div class="card shadow-sm h-100">
-      <div class="card-body text-center">
-        <h4 class="card-title"><i class="fas fa-database text-secondary"></i> Stats</h4>
-        {% if total_users > 0 or total_trades > 0 %}
-        <p>Total Users: <strong>{{ total_users }}</strong></p>
-        <p>Total Trades: <strong>{{ total_trades }}</strong></p>
-        {% else %}
-        <p class="text-muted">No data available.</p>
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alert-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
         {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
+    {% endwith %}
 
-<!-- Real-Time Trading Chart -->
-<div class="col-md-12 mb-3">
-  <div class="card shadow-sm">
-    <div class="card-body text-center">
-      <h5 class="card-title text-warning"><i class="fas fa-chart-line"></i> Real-Time Stock Chart</h5>
-      <div class="d-flex justify-content-center align-items-center mb-3">
-        <label for="stockSymbol" class="me-2 fw-bold">Stock Symbol:</label>
-        <input type="text" id="stockSymbol" class="form-control w-25" value="NSE:INFY">
-        <button class="btn btn-primary ms-2">Update Chart</button>
-      </div>
-      <div id="chartContainer" style="height: 500px;"></div>
+    <!-- Dashboard Sections -->
+    <div class="row g-4">
+        <!-- Register Users -->
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-lg rounded">
+                <div class="card-body text-center">
+                    <h4 class="card-title"><i class="fas fa-user-plus"></i> Register Users</h4>
+                    <p>Register a single user or bulk upload a CSV file.</p>
+                    <a href="{{ url_for('register_user') }}" class="btn btn-light btn-sm shadow">
+                        <i class="fas fa-user-plus"></i> Register
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Users -->
+        <div class="col-md-3">
+            <div class="card bg-info text-white shadow-lg rounded">
+                <div class="card-body text-center">
+                    <h4 class="card-title"><i class="fas fa-users"></i> Manage Users</h4>
+                    <p>View registered users and manage their accounts.</p>
+                    <a href="{{ url_for('view_users') }}" class="btn btn-dark btn-sm shadow">
+                        <i class="fas fa-users"></i> View Users
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trades -->
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-lg rounded">
+                <div class="card-body text-center">
+                    <h4 class="card-title"><i class="fas fa-shopping-cart"></i> Trades</h4>
+                    <p>Place manual or auto trades, or view trade history.</p>
+                    <a href="{{ url_for('place_order') }}" class="btn btn-light btn-sm shadow">
+                        <i class="fas fa-shopping-cart"></i> Place Order
+                    </a>
+                    <a href="{{ url_for('view_trades') }}" class="btn btn-dark btn-sm shadow">
+                        <i class="fas fa-list"></i> View Trades
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Chart -->
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow-lg rounded">
+                <div class="card-body text-center">
+                    <h4 class="card-title"><i class="fas fa-chart-line"></i> Live Chart</h4>
+                    <p>Monitor real-time stock prices with TradingView.</p>
+                    <a href="{{ url_for('live_chart') }}" class="btn btn-dark btn-sm shadow">
+                        <i class="fas fa-chart-bar"></i> Go to Live Chart
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <!-- Stats -->
+    <div class="row mt-4">
+        <div class="col-md-3 offset-md-3">
+            <div class="card bg-dark text-white shadow-lg rounded">
+                <div class="card-body text-center">
+                    <h4 class="card-title"><i class="fas fa-database"></i> Stats</h4>
+                    <p>Total Users: <strong>{{ total_users }}</strong></p>
+                    <p>Total Trades: <strong>{{ total_trades }}</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-Time Stock Chart -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow-lg rounded" style="background: #1a1a1a; color: white;">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning"><i class="fas fa-chart-line"></i> Real-Time Stock Chart</h5>
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <label for="stockSymbol" class="me-2 fw-bold">Stock Symbol:</label>
+                        <input type="text" id="stockSymbol" class="form-control w-25 text-dark" value="NSE:INFY">
+                        <button class="btn btn-primary ms-2" onclick="updateChart()">Update Chart</button>
+                    </div>
+                    <div id="chartContainer" style="height: 500px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- TradingView Integration -->
 <script src="https://s3.tradingview.com/tv.js"></script>
 <script>
-  // TradingView Widget for Live Chart
-  new TradingView.widget({
-    container_id: "chartContainer",
-    autosize: true,
-    symbol: "NSE:INFY",
-    interval: "5",
-    timezone: "Etc/UTC",
-    theme: "light",
-    style: "1",
-    locale: "en",
-    toolbar_bg: "#f1f3f6",
-    hide_side_toolbar: false,
-    allow_symbol_change: true,
-    studies: ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]
-  });
+function updateChart() {
+    let symbol = document.getElementById("stockSymbol").value;
+    document.getElementById("chartContainer").innerHTML = "";
+    new TradingView.widget({
+        "container_id": "chartContainer",
+        "autosize": true,
+        "symbol": symbol,
+        "interval": "5",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "toolbar_bg": "#1a1a1a",
+        "hide_side_toolbar": false,
+        "allow_symbol_change": true,
+        "studies": ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]
+    });
+}
 </script>
+
 {% endblock %}
