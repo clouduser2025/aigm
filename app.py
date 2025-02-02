@@ -148,19 +148,17 @@ class PlaceOrderForm(FlaskForm):
     price = FloatField("Price", validators=[DataRequired(), NumberRange(min=0)])
     submit = SubmitField("Place Order")
 
-@app.route("/view_users", methods=["GET"])
-@admin_required
+@app.route("/view_users")
+@admin_required  # Ensure this is not blocking access
 def view_users():
-    """
-    View all registered users sorted by creation date.
-    """
-    sort_order = request.args.get("order", "desc")  # Default: descending order
-    if sort_order == "asc":
+    order = request.args.get("order", "desc")  # Get sort order
+    if order == "asc":
         users = TradingUser.query.order_by(TradingUser.created_at.asc()).all()
     else:
         users = TradingUser.query.order_by(TradingUser.created_at.desc()).all()
 
     return render_template("view_users.html", users=users)
+
 
 @app.route("/delete_user/<int:user_id>", methods=["POST"])
 @admin_required
