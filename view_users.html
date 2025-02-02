@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-primary"><i class="fas fa-users"></i> Registered Users</h2>
+
+    <!-- Sorting Options -->
+    <div class="mb-3">
+        <a href="{{ url_for('view_users', order='asc') }}" class="btn btn-primary">Sort by Oldest</a>
+        <a href="{{ url_for('view_users', order='desc') }}" class="btn btn-secondary">Sort by Newest</a>
+    </div>
+
+    <!-- Delete All Users Button -->
+    <form action="{{ url_for('delete_all_users') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete ALL users?');">
+        <button type="submit" class="btn btn-danger mb-3"><i class="fas fa-trash"></i> Delete All Users</button>
+    </form>
+
+    <!-- Users Table -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Broker</th>
+                <th>Registered On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.broker }}</td>
+                <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>
+                    <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete {{ user.username }}?');">
+                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

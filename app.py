@@ -82,7 +82,7 @@ class Trade(db.Model):
     price = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     broker_order_id = db.Column(db.String(50), nullable=False)
-
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)  # ✅ Track when user was added
     user_id = db.Column(db.Integer, db.ForeignKey('trading_user.id'), nullable=False)
 
 
@@ -147,6 +147,53 @@ class PlaceOrderForm(FlaskForm):
     transaction_type = SelectField("Type", choices=[("BUY", "Buy"), ("SELL", "Sell")])
     price = FloatField("Price", validators=[DataRequired(), NumberRange(min=0)])
     submit = SubmitField("Place Order")
+
+@app.route("/view_users", methods=["GET"])
+@admin_required
+def view_users():
+    """
+    View all registered users sorted by creation date.
+    """
+    sort_order = request.args.get("order", "desc")  # Default: descending order
+    if sort_order == "asc":
+        users = TradingUser.query.order_by(TradingUser.created_at.asc()).all()
+    else:
+        users = TradingUser.query.order_by(TradingUser.created_at.desc()).all()
+
+    return render_template("view_users.html", users=users)
+
+@app.route("/delete_user/<int:user_id>", methods=["POST"])
+@admin_required
+def delete_user(user_id):
+    """
+    Delete a specific user by ID.
+    """
+    user = TradingUser.query.get(user_id)
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        flash(f"User '{user.username}' deleted successfully.", "success")
+    else:
+        flash("User not found!", "danger")
+
+    return redirect(url_for("view_users"))
+
+
+@app.route("/delete_all_users", methods=["POST"])
+@admin_required
+def delete_all_users():
+    """
+    Delete all trading users from the database.
+    """
+    try:
+        num_deleted = TradingUser.query.delete()
+        db.session.commit()
+        flash(f"Deleted {num_deleted} users successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting users: {e}", "danger")
+
+    return redirect(url_for("view_users"))
 
 ##############################################################################
 # Admin Login / Logout
@@ -243,32 +290,6 @@ def register_user():
         return redirect(url_for("admin_dashboard"))
 
     return render_template("register_user.html", form=form)
-
-@app.route("/delete_all_users", methods=["POST"])
-@admin_required
-def delete_all_users():
-    try:
-        num_deleted = TradingUser.query.delete()
-        db.session.commit()
-        flash(f"Deleted {num_deleted} users successfully.", "success")
-    except Exception as e:
-        flash(f"Error deleting users: {str(e)}", "danger")
-    return redirect(url_for("admin_dashboard"))
-
-
-
-csrf = CSRFProtect(app)
-
-@app.route("/delete_user/<int:user_id>", methods=["POST"])
-def delete_user(user_id):
-    user = TradingUser.query.get(user_id)
-    if not user:
-        flash("User not found.", "danger")
-        return redirect(url_for("admin_dashboard"))
-    db.session.delete(user)
-    db.session.commit()
-    flash(f"Deleted user '{user.username}' successfully.", "success")
-    return redirect(url_for("admin_dashboard"))
 
 
 @app.route("/bulk_register", methods=["POST"])
