@@ -35,7 +35,7 @@ from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__, template_folder='.')
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "MY_SUPER_SECRET_KEY")
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///multi_broker_traders.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///multi_broker_traders_fed1.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -63,12 +63,13 @@ class TradingUser(db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
 
-
     broker = db.Column(db.String(20), nullable=False)     # angel or shonnay
     api_key = db.Column(db.String(128), nullable=False)   # for "angel" or dummy
     totp_token = db.Column(db.String(64), nullable=True)  # optional
     default_quantity = db.Column(db.Integer, default=1)
 
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)  # ✅ Added this!
+    
     trades = db.relationship("Trade", backref="trading_user", lazy=True)
 
 class Trade(db.Model):
