@@ -30,15 +30,17 @@
       <form id="manual-trade-form">
         <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token() }}">
     
-        <div class="mb-3">
-          <label class="form-label">Select Users</label>
-          <select id="manual_users" class="form-select" multiple>
-            {% for u in users %}
-            <option value="{{ u.id }}">{{ u.username }} ({{u.broker}})</option>
-            {% endfor %}
-          </select>
-          
+        <div id="manual_users" class="border p-2 rounded">
+          {% for u in users %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="{{ u.id }}" id="manual_user_{{ u.id }}">
+            <label class="form-check-label" for="manual_user_{{ u.id }}">
+              {{ u.username }} ({{ u.broker }})
+            </label>
+          </div>
+          {% endfor %}
         </div>
+        
         <div class="mb-3">
           <label class="form-label">Symbol</label>
           <input type="text" id="manual_symbol" class="form-control" placeholder="e.g. INFY">
@@ -69,11 +71,17 @@
         <div class="row g-3 mb-2">
           <div class="col-md-4">
             <label class="form-label">Select Users</label>
-            <select id="auto_users" class="form-select" multiple>
+            <div id="auto_users" class="border p-2 rounded">
               {% for u in users %}
-              <option value="{{ u.id }}">{{ u.username }} ({{u.broker}})</option>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="{{ u.id }}" id="auto_user_{{ u.id }}">
+                <label class="form-check-label" for="auto_user_{{ u.id }}">
+                  {{ u.username }} ({{ u.broker }})
+                </label>
+              </div>
               {% endfor %}
-            </select>
+            </div>
+            
             
           </div>
           <div class="col-md-4">
