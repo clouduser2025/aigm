@@ -35,7 +35,7 @@ from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__, template_folder='.')
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "MY_SUPER_SECRET_KEY")
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///multi_broker_trade.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///multi_broker_traders.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -172,11 +172,10 @@ def delete_user(user_id):
     if user:
         db.session.delete(user)
         db.session.commit()
-        flash(f"User '{user.username}' deleted successfully.", "success")
+        return jsonify({"success": True, "message": f"User '{user.username}' deleted successfully."}), 200
     else:
-        flash("User not found!", "danger")
+        return jsonify({"success": False, "message": "User not found."}), 404
 
-    return redirect(url_for("view_users"))
 
 
 @app.route("/delete_all_users", methods=["POST"])
