@@ -20,27 +20,27 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Dashboard Sections with Trading Colors -->
+    <!-- Dashboard Sections with Trading Colors (All 5 in One Row) -->
     <div class="row g-4">
         <!-- Register Users (Green for Growth) -->
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #28a745, #1f8b4d);">
                 <div class="card-body text-center">
-                    <h4 class="card-title"><i class="fas fa-user-plus"></i> Register Users</h4>
-                    <p>Register a single user or bulk upload a CSV file.</p>
+                    <h4 class="card-title"><i class="fas fa-user-plus"></i> Register</h4>
+                    <p>Register a single user or bulk upload.</p>
                     <a href="{{ url_for('register_user') }}" class="btn btn-dark btn-sm shadow-lg">
-                        <i class="fas fa-user-plus"></i> Register
+                        <i class="fas fa-user-plus"></i> Add User
                     </a>
                 </div>
             </div>
         </div>
 
         <!-- Manage Users (Blue for Info) -->
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #007bff, #0056b3);">
                 <div class="card-body text-center">
-                    <h4 class="card-title"><i class="fas fa-users"></i> Manage Users</h4>
-                    <p>View registered users and manage their accounts.</p>
+                    <h4 class="card-title"><i class="fas fa-users"></i> Users</h4>
+                    <p>Manage registered users.</p>
                     <a href="{{ url_for('view_users') }}" class="btn btn-dark btn-sm shadow-lg">
                         <i class="fas fa-users"></i> View Users
                     </a>
@@ -49,39 +49,37 @@
         </div>
 
         <!-- Trades (Red for Sell Transactions) -->
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #dc3545, #c82333);">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-shopping-cart"></i> Trades</h4>
-                    <p>Place manual or auto trades, or view trade history.</p>
+                    <p>Place and monitor trades.</p>
                     <a href="{{ url_for('place_order') }}" class="btn btn-light btn-sm shadow-lg">
-                        <i class="fas fa-shopping-cart"></i> Place Order
+                        <i class="fas fa-shopping-cart"></i> Order
                     </a>
                     <a href="{{ url_for('view_trades') }}" class="btn btn-dark btn-sm shadow-lg">
-                        <i class="fas fa-list"></i> View Trades
+                        <i class="fas fa-list"></i> History
                     </a>
                 </div>
             </div>
         </div>
 
         <!-- Live Chart (Yellow for Alerts) -->
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card shadow-lg border-0 rounded text-dark" style="background: linear-gradient(135deg, #ffc107, #d39e00);">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-chart-line"></i> Live Chart</h4>
-                    <p>Monitor real-time stock prices with TradingView.</p>
+                    <p>Monitor market prices.</p>
                     <a href="{{ url_for('live_chart') }}" class="btn btn-dark btn-sm shadow-lg">
-                        <i class="fas fa-chart-bar"></i> Go to Live Chart
+                        <i class="fas fa-chart-bar"></i> View Chart
                     </a>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Stats (Dark Theme for Terminal Feel) -->
-    <div class="row mt-4">
-        <div class="col-md-3 offset-md-3">
-            <div class="card shadow-lg border-0 rounded text-white bg-dark">
+        <!-- Stats (Purple for Premium Look) -->
+        <div class="col-md-2">
+            <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #6f42c1, #563d7c);">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-database"></i> Stats</h4>
                     <p>Total Users: <strong>{{ total_users }}</strong></p>
@@ -91,7 +89,7 @@
         </div>
     </div>
 
-    <!-- Real-Time Stock Chart (Dark Themed) -->
+    <!-- Real-Time Stock Chart (Increased Height) -->
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="card shadow-lg rounded border-0" style="background: #121212; color: white;">
@@ -102,7 +100,7 @@
                         <input type="text" id="stockSymbol" class="form-control w-25 text-dark" value="NSE:INFY">
                         <button class="btn btn-primary ms-2 shadow-lg" onclick="updateChart()">Update Chart</button>
                     </div>
-                    <div id="chartContainer" style="height: 500px;"></div>
+                    <div id="chartContainer" style="height: 650px;"></div>
                 </div>
             </div>
         </div>
