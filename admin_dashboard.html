@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container-fluid py-4">
-    <h1 class="text-center text-light bg-dark p-3 rounded shadow-lg">
-        <i class="fas fa-tachometer-alt"></i> Admin Dashboard
-    </h1>
-    <p class="text-center text-muted">Welcome, admin! Manage your multi-broker trading below.</p>
+    <!-- Admin Dashboard Title with Better Color -->
+    <div class="text-center bg-gradient p-4 rounded shadow-lg" style="background: linear-gradient(135deg, #2C3E50, #34495E); color: white;">
+        <h1 class="fw-bold"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+        <p class="lead">Welcome, admin! Manage your multi-broker trading below.</p>
+    </div>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -20,11 +21,11 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Dashboard Sections with Trading Colors (All 5 in One Row) -->
-    <div class="row g-4">
+    <!-- Dashboard Sections with Improved Colors -->
+    <div class="row g-4 mt-3">
         <!-- Register Users (Green for Growth) -->
         <div class="col-md-2">
-            <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #28a745, #1f8b4d);">
+            <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #28a745, #218838);">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-user-plus"></i> Register</h4>
                     <p>Register a single user or bulk upload.</p>
@@ -50,7 +51,7 @@
 
         <!-- Trades (Red for Sell Transactions) -->
         <div class="col-md-2">
-            <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #dc3545, #c82333);">
+            <div class="card shadow-lg border-0 rounded text-white" style="background: linear-gradient(135deg, #E74C3C, #C0392B);">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-shopping-cart"></i> Trades</h4>
                     <p>Place and monitor trades.</p>
@@ -64,9 +65,9 @@
             </div>
         </div>
 
-        <!-- Live Chart (Yellow for Alerts) -->
+        <!-- Live Chart (Gold for Alerts) -->
         <div class="col-md-2">
-            <div class="card shadow-lg border-0 rounded text-dark" style="background: linear-gradient(135deg, #ffc107, #d39e00);">
+            <div class="card shadow-lg border-0 rounded text-dark" style="background: linear-gradient(135deg, #f39c12, #e67e22);">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-chart-line"></i> Live Chart</h4>
                     <p>Monitor market prices.</p>
@@ -100,7 +101,7 @@
                         <input type="text" id="stockSymbol" class="form-control w-25 text-dark" value="NSE:INFY">
                         <button class="btn btn-primary ms-2 shadow-lg" onclick="updateChart()">Update Chart</button>
                     </div>
-                    <div id="chartContainer" style="height: 650px;"></div>
+                    <div id="chartContainer" style="height: 700px;"></div>
                 </div>
             </div>
         </div>
