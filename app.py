@@ -14,7 +14,6 @@ from flask import (
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_socketio import SocketIO, emit
-
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired, Length, NumberRange
 
@@ -35,18 +34,14 @@ from flask_wtf.csrf import CSRFProtect
 ##############################################################################
 
 app = Flask(__name__, template_folder='.')
-
-# ✅ Configure Database
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "MY_SUPER_SECRET_KEY")
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///multi_traders.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///multi_broker_traders.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db.init_app(app)  # ✅ Initialize db properly
-
+db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 csrf = CSRFProtect(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
-
 
 ##############################################################################
 # Single Admin Credentials
