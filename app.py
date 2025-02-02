@@ -5,8 +5,27 @@ import random
 import threading
 from datetime import datetime
 import functools
+
+# Angel API module (SmartConnect)
 from SmartApi import SmartConnect  # Ensure the AngelOne Smart API is installed
-from data import db  # Import your database object
+
+# Dummy Shonnay API integration (simulate similar functionality)
+class ShonayConnect:
+    def __init__(self, api_key):
+        self.api_key = api_key
+
+    def login(self, userid, password, twoFA, vendor_code, api_secret, imei):
+        # Simulate a successful login (dummy values)
+        return {"session": "dummy_session"}
+
+    def place_order(self, buy_or_sell, product_type, exchange, tradingsymbol,
+                    quantity, discloseqty, price_type, price=0.0, trigger_price=None,
+                    retention='DAY', amo='NO', remarks=None):
+        # Simulate placing an order and return a dummy order ID
+        return f"SH-{int(time.time())}"
+
+# Import your database object from data.py
+from data import db
 from flask import (
     Flask, render_template, request, redirect,
     url_for, flash, session, jsonify, send_from_directory
@@ -36,7 +55,7 @@ csrf = CSRFProtect(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 ##############################################################################
-# Single Admin Credentials
+# Admin Credentials
 ##############################################################################
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin")
@@ -49,7 +68,7 @@ class TradingUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password = db.Column(db.String(128), nullable=False)
-    broker = db.Column(db.String(20), nullable=False)     # angel or shonnay
+    broker = db.Column(db.String(20), nullable=False)  # "angel" or "shonnay"
     api_key = db.Column(db.String(128), nullable=False)
     totp_token = db.Column(db.String(64), nullable=True)
     default_quantity = db.Column(db.Integer, default=1)
@@ -60,7 +79,7 @@ class Trade(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(20), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    transaction_type = db.Column(db.String(10), nullable=False)  # BUY or SELL
+    transaction_type = db.Column(db.String(10), nullable=False)  # "BUY" or "SELL"
     price = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     broker_order_id = db.Column(db.String(50), nullable=False)
@@ -71,14 +90,12 @@ with app.app_context():
     db.create_all()
 
 ##############################################################################
-# Simulated "Live Price" (for demonstration)
+# Simulated Live Price Functions
 ##############################################################################
 def angel_fetch_live_price(symbol: str) -> float:
-    # Return a random float around 1000 +/- 10 for Angel
     return 1000 + random.uniform(-10, 10)
 
 def shonnay_fetch_live_price(symbol: str) -> float:
-    # For simulation, Shonnay prices can be slightly different
     return 1000 + random.uniform(-8, 8)
 
 ##############################################################################
@@ -99,7 +116,7 @@ def admin_required(f):
 auto_trade_flags = {}
 
 ##############################################################################
-# FORMS
+# Forms
 ##############################################################################
 class AdminLoginForm(FlaskForm):
     username = StringField("Admin Username", validators=[DataRequired()])
@@ -124,46 +141,8 @@ class PlaceOrderForm(FlaskForm):
     submit = SubmitField("Place Order")
 
 ##############################################################################
-# Routes for user management, login, dashboard, etc.
+# Routes
 ##############################################################################
-@app.route("/view_users")
-@admin_required
-def view_users():
-    order = request.args.get("order", "desc")
-    try:
-        users = TradingUser.query.order_by(TradingUser.created_at.asc() if order=="asc" else TradingUser.created_at.desc()).all()
-        return render_template("view_users.html", users=users)
-    except Exception as e:
-        app.logger.error(f"Error loading users: {str(e)}")
-        return "Error loading users.", 500
-
-@app.route("/delete_user/<int:user_id>", methods=["POST"])
-@admin_required
-def delete_user(user_id):
-    user = TradingUser.query.get(user_id)
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-        return jsonify({"success": True, "message": f"User '{user.username}' deleted successfully."}), 200
-    else:
-        return jsonify({"success": False, "message": "User not found."}), 404
-
-@app.route("/delete_all_users", methods=["POST"])
-@admin_required
-def delete_all_users():
-    try:
-        num_deleted = TradingUser.query.delete()
-        db.session.commit()
-        flash(f"Deleted {num_deleted} users successfully.", "success")
-    except Exception as e:
-        db.session.rollback()
-        flash(f"Error deleting users: {e}", "danger")
-    return redirect(url_for("view_users"))
-
-@app.route('/ramdoot.jpg')
-def serve_logo():
-    return send_from_directory('.', 'ramdoot.jpg')
-
 @app.route("/admin_login", methods=["GET", "POST"])
 def admin_login():
     form = AdminLoginForm()
@@ -177,86 +156,12 @@ def admin_login():
             return redirect(url_for("admin_login"))
     return render_template("admin_login.html", form=form)
 
-@app.route("/admin_logout")
-@admin_required
-def admin_logout():
-    session.pop("is_admin", None)
-    flash("Admin logged out.", "info")
-    return redirect(url_for("admin_login"))
-
-@app.route("/")
-def home():
-    if session.get("is_admin"):
-        return redirect(url_for("admin_dashboard"))
-    else:
-        return redirect(url_for("admin_login"))
-
 @app.route("/admin_dashboard")
 @admin_required
 def admin_dashboard():
-    page = request.args.get('page', 1, type=int)
-    per_page = 10
-    users = TradingUser.query.paginate(page=page, per_page=per_page, error_out=False)
-    trades = Trade.query.paginate(page=page, per_page=per_page, error_out=False)
-    return render_template("admin_dashboard.html",
-                           users=users.items,
-                           trades=trades.items,
-                           total_users=users.total if users.items else 0,
-                           total_trades=trades.total if trades.items else 0)
-
-@app.route("/register_user", methods=["GET", "POST"])
-@admin_required
-def register_user():
-    form = RegisterTradingUserForm()
-    if form.validate_on_submit():
-        if TradingUser.query.filter_by(username=form.username.data).first():
-            flash("Username already exists!", "danger")
-            return redirect(url_for("register_user"))
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
-        new_user = TradingUser(
-            username=form.username.data,
-            password=hashed_password,
-            broker=form.broker.data,
-            api_key=form.api_key.data,
-            totp_token=form.totp_token.data if form.broker.data == "angel" else None,
-            default_quantity=form.default_quantity.data
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        flash(f"Registered user '{new_user.username}' successfully.", "success")
-        return redirect(url_for("admin_dashboard"))
-    return render_template("register_user.html", form=form)
-
-@app.route("/bulk_register", methods=["POST"])
-@admin_required
-def bulk_register():
-    file = request.files.get("file")
-    if not file or not file.filename.endswith(".csv"):
-        flash("Please upload a valid CSV file (.csv).", "danger")
-        return redirect(url_for("register_user"))
-    try:
-        reader = csv.reader(file.stream.read().decode("utf-8").splitlines())
-        count = 0
-        for row in reader:
-            if len(row) < 5:
-                continue
-            username, broker, api_key, totp_token, def_qty = row
-            if TradingUser.query.filter_by(username=username).first():
-                continue
-            user = TradingUser(
-                username=username,
-                broker=broker,
-                api_key=api_key,
-                totp_token=totp_token,
-                default_quantity=int(def_qty or 1)
-            )
-            db.session.add(user)
-            count += 1
-        db.session.commit()
-        flash(f"Bulk registered {count} users.", "success")
-    except Exception as e:
-        flash(f"Error during bulk register: {e}", "danger")
-    return redirect(url_for("register_user"))
+    users = TradingUser.query.all()
+    trades = Trade.query.order_by(Trade.timestamp.desc()).all()
+    return render_template("admin_dashboard.html", users=users, trades=trades)
 
 @app.route("/place_order", methods=["GET", "POST"])
 @admin_required
@@ -290,49 +195,18 @@ def place_order():
             }, broadcast=True)
         db.session.commit()
         flash("Manual trade placed!", "success")
-        return redirect(url_for("view_trades"))
+        return redirect(url_for("admin_dashboard"))
     return render_template("place_order.html", form=form, users=trading_users)
 
-@app.route("/trades")
-@admin_required
-def view_trades():
-    trades = Trade.query.order_by(Trade.timestamp.desc()).all()
-    return render_template("trades.html", trades=trades)
-
-@app.route("/chart")
-@admin_required
-def chart():
-    return render_template("chart.html")
-
-@socketio.on("request_trades")
-def handle_request_trades():
-    all_trades = Trade.query.order_by(Trade.id.asc()).all()
-    data = []
-    for t in all_trades:
-        data.append({
-            "symbol": t.symbol,
-            "price": t.price,
-            "broker_order_id": t.broker_order_id,
-            "username": t.trading_user.username,
-            "broker": t.trading_user.broker
-        })
-    emit("initial_trades", data)
-
-@app.route("/live_chart", methods=["GET"])
-@admin_required
-def live_chart():
-    tradingsymbol = request.args.get("tradingsymbol", "INFY")
-    exchange = request.args.get("exchange", "NSE")
-    return render_template("live_chart.html", tradingsymbol=tradingsymbol, exchange=exchange)
-
-##############################################################################
-# API Endpoints for Order Placement
-##############################################################################
+# ---------------------------
+# API Endpoint: Manual Trade
+# (For a single user; adjust frontend if you want multiple.)
+# ---------------------------
 @app.route("/api/manual_trade", methods=["POST"])
 @admin_required
 def api_manual_trade():
     data = request.get_json()
-    user_id = data.get("user_id")
+    user_id = data.get("user_id")  # Expect a single user id
     user = TradingUser.query.get(user_id)
     if not user:
         return jsonify({"success": False, "message": "Invalid user_id"}), 400
@@ -346,6 +220,7 @@ def api_manual_trade():
     exchange = data.get("exchange", "NSE")
     if not symbol or not transaction_type or price <= 0:
         return jsonify({"success": False, "message": "Missing or invalid trade details."}), 400
+
     if broker == "angel":
         try:
             obj = SmartConnect(api_key=api_key)
@@ -364,14 +239,26 @@ def api_manual_trade():
                 "quantity": quantity
             }
             order_id = obj.placeOrder(orderparams)
-            return jsonify({"success": True, "message": f"Order placed successfully. Order ID: {order_id}"}), 200
+            return jsonify({"success": True, "message": f"Angel order placed. Order ID: {order_id}"}), 200
         except Exception as e:
-            return jsonify({"success": False, "message": f"Error placing order: {e}"}), 500
+            return jsonify({"success": False, "message": f"Error placing Angel order: {e}"}), 500
     elif broker == "shonnay":
         try:
-            # Simulated Shonnay integration for manual trade:
-            order_id = f"SH-{int(time.time())}"
-            # Emit a dummy trade event for Shonnay:
+            sh_api = ShonayConnect(api_key=api_key)
+            ret = sh_api.login(userid=user.username, password="dummy_pwd", twoFA="dummy_2fa",
+                               vendor_code="VC123", api_secret=api_key, imei="dummy_imei")
+            order_id = sh_api.place_order(buy_or_sell='B' if transaction_type=="BUY" else 'S',
+                                          product_type='C',
+                                          exchange=exchange,
+                                          tradingsymbol=symbol,
+                                          quantity=quantity,
+                                          discloseqty=0,
+                                          price_type='SL-LMT',
+                                          price=price,
+                                          trigger_price=price-0.5,  # dummy trigger price
+                                          retention='DAY',
+                                          amo='NO',
+                                          remarks='sh_manual_order')
             socketio.emit('new_trade', {
                 "symbol": symbol,
                 "price": price,
@@ -379,12 +266,15 @@ def api_manual_trade():
                 "username": user.username,
                 "broker": user.broker
             }, broadcast=True)
-            return jsonify({"success": True, "message": f"Shonnay order placed successfully. Order ID: {order_id}"}), 200
+            return jsonify({"success": True, "message": f"Shonnay order placed. Order ID: {order_id}"}), 200
         except Exception as e:
             return jsonify({"success": False, "message": f"Error placing Shonnay order: {e}"}), 500
     else:
-        return jsonify({"success": False, "message": f"Broker {broker} not supported yet."}), 400
+        return jsonify({"success": False, "message": f"Broker {broker} not supported."}), 400
 
+# ---------------------------
+# API Endpoint: Auto Trade with Stop-Loss
+# ---------------------------
 @app.route("/api/auto_trade", methods=["POST"])
 @admin_required
 def api_auto_trade():
@@ -393,6 +283,7 @@ def api_auto_trade():
     selected_users = TradingUser.query.filter(TradingUser.id.in_(user_ids)).all()
     if not selected_users:
         return jsonify({"success": False, "message": "No valid users selected."}), 400
+
     symbol = data.get("symbol")
     condition = data.get("condition")
     basis = data.get("basis")
@@ -403,15 +294,18 @@ def api_auto_trade():
     points_condition = float(data.get("points_condition", 0))
     if not symbol or not condition or not basis or not stop_loss_type or stop_loss_value is None:
         return jsonify({"success": False, "message": "Missing required fields."}), 400
-    # For simplicity, assume all selected users use the same broker
+
+    # For simplicity, assume all selected users use the same broker.
     user = selected_users[0]
     broker = user.broker
     api_key = user.api_key
     totp_token = user.totp_token
+
     if broker == "angel":
         obj = SmartConnect(api_key=api_key)
         session_data = obj.generateSession(user.username, totp_token)
         feed_token = obj.getfeedToken()
+
         def monitor_auto_trade(user):
             while True:
                 live_price = angel_fetch_live_price(symbol)
@@ -419,11 +313,11 @@ def api_auto_trade():
                     time.sleep(5)
                     continue
                 triggered = False
+                # For demonstration, use fixed basis conditions
                 if condition == "Condition 1" and basis == "fixed" and live_price >= threshold_value:
                     triggered = True
                 elif condition == "Condition 2" and basis == "fixed" and live_price > threshold_value:
                     triggered = True
-                # (Extend conditions for other bases as needed)
                 if triggered:
                     try:
                         orderparams = {
@@ -439,12 +333,14 @@ def api_auto_trade():
                             "quantity": user.default_quantity
                         }
                         order_id = obj.placeOrder(orderparams)
+                        # Start trailing stop-loss monitoring:
                         monitor_stop_loss(user, symbol, live_price, stop_loss_type, stop_loss_value, user.default_quantity, points_condition, obj)
                         break
                     except Exception as e:
-                        print(f"Error placing order: {e}")
+                        print(f"Error placing BUY order for {user.username}: {e}")
                         break
                 time.sleep(5)
+
         def monitor_stop_loss(user, symbol, entry_price, sl_type, sl_value, qty, pts_cond, smart_obj):
             base = entry_price
             highest = entry_price
@@ -465,7 +361,7 @@ def api_auto_trade():
                     current_sl = float(sl_value)
                 else:
                     current_sl = base
-                print(f"[StopLoss] User: {user.username}, Live Price: {live_price:.2f}, Base: {base:.2f}, Highest: {highest:.2f}, Current SL: {current_sl:.2f}")
+                print(f"[Angel SL] {user.username}: Live={live_price:.2f}, Base={base:.2f}, Highest={highest:.2f}, SL={current_sl:.2f}")
                 if live_price <= current_sl:
                     try:
                         orderparams = {
@@ -483,18 +379,19 @@ def api_auto_trade():
                         smart_obj.placeOrder(orderparams)
                         break
                     except Exception as e:
-                        print(f"Error placing stop-loss order: {e}")
+                        print(f"Error placing SELL order for {user.username}: {e}")
                         break
                 time.sleep(5)
+
         for user in selected_users:
             if auto_trade_flags.get(user.id, False):
                 continue
             auto_trade_flags[user.id] = True
             threading.Thread(target=monitor_auto_trade, args=(user,), daemon=True).start()
-        return jsonify({"success": True, "message": "Auto trade started with stop-loss."}), 200
+        return jsonify({"success": True, "message": "Angel auto trade started with stop-loss."}), 200
+
     elif broker == "shonnay":
         try:
-            # Simulated Shonnay auto-trade integration:
             def monitor_auto_trade_shonnay(user):
                 while True:
                     live_price = shonnay_fetch_live_price(symbol)
@@ -508,11 +405,27 @@ def api_auto_trade():
                         triggered = True
                     if triggered:
                         try:
-                            order_id = f"SH-{int(time.time())}"
-                            print(f"Shonnay auto trade placed for {user.username} at {live_price}")
+                            sh_api = ShonayConnect(api_key=api_key)
+                            ret = sh_api.login(userid=user.username, password="dummy_pwd", twoFA="dummy_2fa",
+                                               vendor_code="VC123", api_secret=api_key, imei="dummy_imei")
+                            order_id = sh_api.place_order(
+                                buy_or_sell='B',
+                                product_type='C',
+                                exchange="NSE",
+                                tradingsymbol=symbol,
+                                quantity=user.default_quantity,
+                                discloseqty=0,
+                                price_type='SL-LMT',
+                                price=live_price,
+                                trigger_price=live_price - 0.5,
+                                retention='DAY',
+                                amo='NO',
+                                remarks='sh_auto_order'
+                            )
+                            print(f"Shonnay auto trade for {user.username} at {live_price}, Order ID: {order_id}")
                             break
                         except Exception as e:
-                            print(f"Error placing Shonnay order: {e}")
+                            print(f"Error placing Shonnay auto trade for {user.username}: {e}")
                             break
                     time.sleep(5)
             for user in selected_users:
@@ -522,12 +435,39 @@ def api_auto_trade():
                 threading.Thread(target=monitor_auto_trade_shonnay, args=(user,), daemon=True).start()
             return jsonify({"success": True, "message": "Shonnay auto trade started (simulated)."}), 200
         except Exception as e:
-            return jsonify({"success": False, "message": f"Error in Shonnay auto-trade: {e}"}), 500
+            return jsonify({"success": False, "message": f"Error in Shonnay auto trade: {e}"}), 500
     else:
-        return jsonify({"success": False, "message": f"Broker {broker} not supported yet."}), 400
+        return jsonify({"success": False, "message": f"Broker {broker} not supported."}), 400
 
-##############################################################################
+# ---------------------------
+# Live Chart Endpoint (TradingView widget page)
+# ---------------------------
+@app.route("/live_chart", methods=["GET"])
+@admin_required
+def live_chart():
+    tradingsymbol = request.args.get("tradingsymbol", "INFY")
+    exchange = request.args.get("exchange", "NSE")
+    return render_template("live_chart.html", tradingsymbol=tradingsymbol, exchange=exchange)
+
+# ---------------------------
+# Socket.IO: Send initial trades (optional)
+# ---------------------------
+@socketio.on("request_trades")
+def handle_request_trades():
+    all_trades = Trade.query.order_by(Trade.id.asc()).all()
+    data = []
+    for t in all_trades:
+        data.append({
+            "symbol": t.symbol,
+            "price": t.price,
+            "broker_order_id": t.broker_order_id,
+            "username": t.trading_user.username,
+            "broker": t.trading_user.broker
+        })
+    emit("initial_trades", data)
+
+# ---------------------------
 # MAIN
-##############################################################################
+# ---------------------------
 if __name__ == "__main__":
     socketio.run(app, debug=True)

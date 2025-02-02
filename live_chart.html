@@ -9,13 +9,13 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<!-- Include Chart.js and the annotation plugin -->
+<!-- Include Chart.js and annotation plugin -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0"></script>
 <!-- Include Socket.IO client -->
 <script src="/socket.io/socket.io.js"></script>
 <script>
-// Dummy initial data for two brokers
+// Dummy initial data for Angel and Shonnay
 let angelCurrentPrice = 105;
 let shonnayCurrentPrice = 107;
 let angelTarget = 115;
@@ -23,7 +23,6 @@ let shonnayTarget = 113;
 let angelStopLoss = 95;
 let shonnayStopLoss = 97;
 
-// Dummy datasets (each with 12 points)
 let angelData = [104,105,106,107,106,105,106,107,108,107,106,105];
 let shonnayData = [106,107,108,107,106,105,104,105,106,107,108,107];
 
@@ -118,13 +117,14 @@ const priceChart = new Chart(ctx, {
   }
 });
 
-// Socket.IO connection
+// Connect to Socket.IO
 const socket = io.connect();
 
-// Listen for new trade events and update the corresponding broker's dataset and annotation
+// Listen for new trade events and update datasets and annotations.
+// Note: Use .toLowerCase() for string comparisons.
 socket.on('new_trade', function(data) {
-  console.log("New trade:", data);
-  if(data.broker.lower() === "angel" or data.broker.lower() === "angel"):
+  console.log("New trade received:", data);
+  if(data.broker.toLowerCase() === "angel") {
     angelCurrentPrice = data.price;
     priceChart.options.plugins.annotation.annotations.angelCurrentLine.yMin = angelCurrentPrice;
     priceChart.options.plugins.annotation.annotations.angelCurrentLine.yMax = angelCurrentPrice;
@@ -133,7 +133,7 @@ socket.on('new_trade', function(data) {
       angelData.shift();
       priceChart.data.labels.shift();
     }
-  else if(data.broker.lower() == "shonnay"):
+  } else if(data.broker.toLowerCase() === "shonnay") {
     shonnayCurrentPrice = data.price;
     priceChart.options.plugins.annotation.annotations.shonnayCurrentLine.yMin = shonnayCurrentPrice;
     priceChart.options.plugins.annotation.annotations.shonnayCurrentLine.yMax = shonnayCurrentPrice;
@@ -141,12 +141,13 @@ socket.on('new_trade', function(data) {
     if(shonnayData.length > 12) {
       shonnayData.shift();
     }
+  }
   priceChart.update();
 });
 
-// Listen for market update events per broker
+// Listen for market update events that update target and stop-loss.
 socket.on('market_update', function(data) {
-  if(data.broker.lower() == "angel"):
+  if(data.broker.toLowerCase() === "angel") {
     angelCurrentPrice = data.currentPrice;
     angelTarget = data.targetPrice;
     angelStopLoss = data.stopLossPrice;
@@ -156,7 +157,7 @@ socket.on('market_update', function(data) {
     priceChart.options.plugins.annotation.annotations.angelTargetLine.yMax = angelTarget;
     priceChart.options.plugins.annotation.annotations.angelStopLossLine.yMin = angelStopLoss;
     priceChart.options.plugins.annotation.annotations.angelStopLossLine.yMax = angelStopLoss;
-  else if(data.broker.lower() == "shonnay"):
+  } else if(data.broker.toLowerCase() === "shonnay") {
     shonnayCurrentPrice = data.currentPrice;
     shonnayTarget = data.targetPrice;
     shonnayStopLoss = data.stopLossPrice;
@@ -166,6 +167,7 @@ socket.on('market_update', function(data) {
     priceChart.options.plugins.annotation.annotations.shonnayTargetLine.yMax = shonnayTarget;
     priceChart.options.plugins.annotation.annotations.shonnayStopLossLine.yMin = shonnayStopLoss;
     priceChart.options.plugins.annotation.annotations.shonnayStopLossLine.yMax = shonnayStopLoss;
+  }
   priceChart.update();
 });
 </script>
