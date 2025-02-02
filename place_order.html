@@ -180,26 +180,32 @@
 
 <script>
 function placeManualTrade() {
+  const user_ids = Array.from(document.querySelectorAll('#manual_users .form-check-input:checked')).map(input => parseInt(input.value));
+
   const data = {
-  user_ids: Array.from(document.getElementById('manual_users').selectedOptions).map(opt => parseInt(opt.value)), 
-  symbol: document.getElementById('manual_symbol').value,
-  transaction_type: document.getElementById('manual_transaction').value,
-  price: parseFloat(document.getElementById('manual_price').value || '0')
-};
+    user_ids: user_ids,
+    symbol: document.getElementById('manual_symbol').value,
+    transaction_type: document.getElementById('manual_transaction').value,
+    price: parseFloat(document.getElementById('manual_price').value || '0')
+  };
 
   fetch('/api/manual_trade', {
       method: 'POST',
       headers: { 
           'Content-Type': 'application/json',
-          'X-CSRFToken': document.getElementById('csrf_token').value  // ✅ Add CSRF token
+          'X-CSRFToken': document.getElementById('csrf_token').value  
       },
       body: JSON.stringify(data)
-  })
+  });
+}
+
 
 
 function startAutoTrade() {
-    const data = {
-    user_ids: Array.from(document.getElementById('auto_users').selectedOptions).map(opt => parseInt(opt.value)),
+  const user_ids = Array.from(document.querySelectorAll('#auto_users .form-check-input:checked')).map(input => parseInt(input.value));
+
+  const data = {
+    user_ids: user_ids,
     symbol: document.getElementById('auto_symbol').value,
     condition: document.getElementById('auto_condition').value,
     basis: document.getElementById('auto_basis').value,
@@ -209,26 +215,29 @@ function startAutoTrade() {
     stop_loss_value: parseFloat(document.getElementById('sl_value').value || '0')
   };
 
-    fetch('/api/auto_trade', {
-      method: 'POST',
-      headers: { 
-          'Content-Type': 'application/json',
-          'X-CSRFToken': document.getElementById('csrf_token').value  // ✅ Add CSRF token
-      },
-      body: JSON.stringify(data)
-  })
-
+  fetch('/api/auto_trade', {
+    method: 'POST',
+    headers: { 
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.getElementById('csrf_token').value  
+    },
+    body: JSON.stringify(data)
+  });
+}
 
 function stopAutoTrade() {
-  const user_ids = Array.from(document.getElementById('auto_users').selectedOptions).map(opt => parseInt(opt.value));
+  const user_ids = Array.from(document.querySelectorAll('#auto_users .form-check-input:checked')).map(input => parseInt(input.value));
+
   fetch('/api/stop_auto_trade', {
     method: 'POST',
     headers: { 
         'Content-Type': 'application/json',
-        'X-CSRFToken': document.getElementById('csrf_token').value  // ✅ Add CSRF token
+        'X-CSRFToken': document.getElementById('csrf_token').value  
     },
     body: JSON.stringify({ user_ids })
-})
+  });
+}
+
 
 </script>
 {% endblock %}
