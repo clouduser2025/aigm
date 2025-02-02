@@ -6,7 +6,7 @@ import threading
 from datetime import datetime
 import functools
 from SmartApi import SmartConnect  # ✅ Ensure the AngelOne Smart API is installed
-
+from data import db  # ✅ Import `db` from `database.py`
 from flask import (
     Flask, render_template, request, redirect,
     url_for, flash, session, jsonify
@@ -14,6 +14,8 @@ from flask import (
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_socketio import SocketIO, emit
+from flask_migrate import Migrate  # ✅ Add Flask-Migrate
+
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired, Length, NumberRange
 
@@ -34,14 +36,20 @@ from flask_wtf.csrf import CSRFProtect
 ##############################################################################
 
 app = Flask(__name__, template_folder='.')
+
+# ✅ Configure Database
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "MY_SUPER_SECRET_KEY")
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///multi_broker_traders.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "sqlite:///multi_traders.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+db.init_app(app)  # ✅ Initialize db properly
+
 bcrypt = Bcrypt(app)
 csrf = CSRFProtect(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+migrate = Migrate(app, db)  # ✅ Add Flask-Migrate after initializing `db`
+
 
 ##############################################################################
 # Single Admin Credentials
@@ -84,6 +92,8 @@ class Trade(db.Model):
     broker_order_id = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)  # ✅ Track when user was added
     user_id = db.Column(db.Integer, db.ForeignKey('trading_user.id'), nullable=False)
+
+
 
 
 with app.app_context():
@@ -149,14 +159,17 @@ class PlaceOrderForm(FlaskForm):
     submit = SubmitField("Place Order")
 
 @app.route("/view_users")
-@admin_required  # Ensure this is correctly defined
+@admin_required
 def view_users():
     order = request.args.get("order", "desc")  # Get sort order
     try:
-        if order == "asc":
-            users = TradingUser.query.order_by(TradingUser.created_at.asc()).all()
+        if hasattr(TradingUser, "created_at"):  # ✅ Ensure column exists
+            if order == "asc":
+                users = TradingUser.query.order_by(TradingUser.created_at.asc()).all()
+            else:
+                users = TradingUser.query.order_by(TradingUser.created_at.desc()).all()
         else:
-            users = TradingUser.query.order_by(TradingUser.created_at.desc()).all()
+            users = TradingUser.query.all()  # ✅ Safe fallback
 
         return render_template("view_users.html", users=users)
     
