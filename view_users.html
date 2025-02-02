@@ -10,9 +10,9 @@
     </div>
 
     <!-- Delete All Users Button -->
-    <form action="{{ url_for('delete_all_users') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete ALL users?');">
-        <button type="submit" class="btn btn-danger mb-3"><i class="fas fa-trash"></i> Delete All Users</button>
-    </form>
+    <button type="button" class="btn btn-danger mb-3" onclick="deleteAllUsers()">
+        <i class="fas fa-trash"></i> Delete All Users
+    </button>
 
     <!-- Users Table -->
     <table class="table table-striped">
@@ -33,13 +33,84 @@
                 <td>{{ user.broker }}</td>
                 <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                 <td>
-                    <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete {{ user.username }}?');">
-                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</button>
-                    </form>
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser({{ user.id }}, '{{ user.username }}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle"></i> Confirm Deletion
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteUsername"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteUserForm" method="POST">
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Confirm Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Handling Deletion -->
+<script>
+function deleteUser(userId, username) {
+    if (confirm(`Are you sure you want to delete user '${username}'?`)) {
+        fetch(`/delete_user/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() }}"  // Flask-WTF CSRF protection
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload(); // Refresh the page after successful deletion
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+}
+
+function deleteAllUsers() {
+    if (confirm("Are you sure you want to delete ALL users? This action cannot be undone!")) {
+        fetch("/delete_all_users", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() }}"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+}
+</script>
+
 {% endblock %}
