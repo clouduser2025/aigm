@@ -14,7 +14,6 @@ from flask import (
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_socketio import SocketIO, emit
-from flask_migrate import Migrate  # ✅ Add Flask-Migrate
 
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired, Length, NumberRange
@@ -47,8 +46,6 @@ db.init_app(app)  # ✅ Initialize db properly
 bcrypt = Bcrypt(app)
 csrf = CSRFProtect(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
-
-migrate = Migrate(app, db)  # ✅ Add Flask-Migrate after initializing `db`
 
 
 ##############################################################################
