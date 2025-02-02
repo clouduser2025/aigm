@@ -52,17 +52,17 @@
             </div>
         </div>
 
-        <!-- Trades -->
+        <!-- Trades (Updated to Yellow Theme) -->
         <div class="col-lg-4 col-md-12">
-            <div class="card shadow-lg border-0 rounded text-white"
-                style="background: linear-gradient(135deg, #E74C3C, #C0392B); width: 100%;">
+            <div class="card shadow-lg border-0 rounded text-dark"
+                style="background: linear-gradient(135deg, #f1c40f, #d4ac0d); width: 100%;">
                 <div class="card-body text-center">
                     <h4 class="card-title"><i class="fas fa-shopping-cart"></i> Trades</h4>
                     <p>Place and monitor trades.</p>
-                    <a href="{{ url_for('place_order') }}" class="btn btn-light btn-sm shadow-lg">
+                    <a href="{{ url_for('place_order') }}" class="btn btn-dark btn-sm shadow-lg">
                         <i class="fas fa-shopping-cart"></i> Order
                     </a>
-                    <a href="{{ url_for('view_trades') }}" class="btn btn-dark btn-sm shadow-lg">
+                    <a href="{{ url_for('view_trades') }}" class="btn btn-light btn-sm shadow-lg">
                         <i class="fas fa-list"></i> History
                     </a>
                 </div>
