@@ -416,17 +416,18 @@ def place_trade():
 @app.route("/admin_dashboard")
 @admin_required
 def admin_dashboard():
-    page = request.args.get("page", 1, type=int)
-    per_page = 10
-    users_pag = TradingUser.query.paginate(page=page, per_page=per_page, error_out=False)
-    trades_pag = Trade.query.paginate(page=page, per_page=per_page, error_out=False)
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Adjust as needed
+    
+    users = TradingUser.query.paginate(page=page, per_page=per_page, error_out=False)
+    trades = Trade.query.paginate(page=page, per_page=per_page, error_out=False)
 
     return render_template(
         "admin_dashboard.html",
-        users=users_pag.items,
-        trades=trades_pag.items,
-        total_users=users_pag.total,
-        total_trades=trades_pag.total
+        users=users.items,  # ✅ Convert to list instead of pagination object
+        trades=trades.items,  # ✅ Same here
+        total_users=users.total if users.items else 0,  # ✅ Avoid errors
+        total_trades=trades.total if trades.items else 0
     )
 
 @app.route("/register_user", methods=["GET", "POST"])
