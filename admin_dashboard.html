@@ -22,21 +22,42 @@
         {% endif %}
     {% endwith %}
 
-    <!-- First Row (3 Full-Width Sections) -->
-    <div class="row g-4 mt-4">
-        <!-- Register Users -->
-        <div class="col-lg-4 col-md-6">
-            <div class="card shadow-lg border-0 rounded text-white"
-                style="background: linear-gradient(135deg, #28a745, #218838); width: 100%;">
-                <div class="card-body text-center">
-                    <h4 class="card-title"><i class="fas fa-user-plus"></i> Register</h4>
-                    <p>Register a single user or bulk upload.</p>
-                    <a href="{{ url_for('register_user') }}" class="btn btn-dark btn-sm shadow-lg">
-                        <i class="fas fa-user-plus"></i> Add User
-                    </a>
+<!-- First Row (3 Full-Width Sections) -->
+<div class="row g-4 mt-4">
+    <!-- Register & Manage Users (Nested Sub-Cols) -->
+    <div class="col-lg-4 col-md-6">
+        <div class="row g-3">
+            <!-- Register Users -->
+            <div class="col-12">
+                <div class="card shadow-lg border-0 rounded text-white"
+                    style="background: linear-gradient(135deg, #28a745, #218838); width: 100%;">
+                    <div class="card-body text-center">
+                        <h4 class="card-title"><i class="fas fa-user-plus"></i> Register</h4>
+                        <p>Register a single user or bulk upload.</p>
+                        <a href="{{ url_for('register_user') }}" class="btn btn-dark btn-sm shadow-lg">
+                            <i class="fas fa-user-plus"></i> Add User
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Manage Users -->
+            <div class="col-12">
+                <div class="card shadow-lg border-0 rounded text-white"
+                    style="background: linear-gradient(135deg, #007bff, #0056b3); width: 100%;">
+                    <div class="card-body text-center">
+                        <h4 class="card-title"><i class="fas fa-users"></i> Users</h4>
+                        <p>Manage registered users.</p>
+                        <a href="{{ url_for('view_users') }}" class="btn btn-dark btn-sm shadow-lg">
+                            <i class="fas fa-users"></i> View Users
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+
+
         <!-- Market Dashboard Button Section -->
         <div class="row mt-4">
             <div class="col-md-12 text-center">
@@ -53,74 +74,38 @@
             </div>
         </div>  <!-- ✅ Closing div added here -->
 
-        <!-- Manage Users -->
-        <div class="col-lg-4 col-md-6">
-            <div class="card shadow-lg border-0 rounded text-white"
-                style="background: linear-gradient(135deg, #007bff, #0056b3); width: 100%;">
-                <div class="card-body text-center">
-                    <h4 class="card-title"><i class="fas fa-users"></i> Users</h4>
-                    <p>Manage registered users.</p>
-                    <a href="{{ url_for('view_users') }}" class="btn btn-dark btn-sm shadow-lg">
-                        <i class="fas fa-users"></i> View Users
-                    </a>
-                </div>
-            </div>
-        </div>
-
-
-
-        <!-- Stats -->
-        <div class="col-lg-6 col-md-12">
-            <div class="card shadow-lg border-0 rounded text-white"
-                style="background: linear-gradient(135deg, #6f42c1, #563d7c); width: 100%;">
-                <div class="card-body text-center">
-                    <h4 class="card-title"><i class="fas fa-database"></i> Stats</h4>
-                    <p>Total Users: <strong>{{ total_users }}</strong></p>
-                    <p>Total Trades: <strong>{{ total_trades }}</strong></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Full-Width Real-Time Stock Chart -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card shadow-lg rounded border-0" style="background: #121212; color: white; width: 100%;">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-warning"><i class="fas fa-chart-line"></i> Real-Time Stock Chart</h5>
-                    <div class="d-flex justify-content-center align-items-center mb-3">
-                        <label for="stockSymbol" class="me-2 fw-bold">Stock Symbol:</label>
-                        <input type="text" id="stockSymbol" class="form-control w-25 text-dark" value="NSE:INFY">
-                        <button class="btn btn-primary ms-2 shadow-lg" onclick="updateChart()">Update Chart</button>
+   <!-- Third Row (Nested Sub-Columns) -->
+<div class="row g-4 mt-4">
+    <div class="col-lg-6 col-md-12">
+        <div class="row g-3">
+            <!-- Manage Users -->
+            <div class="col-12">
+                <div class="card shadow-lg border-0 rounded text-white"
+                    style="background: linear-gradient(135deg, #007bff, #0056b3); width: 100%;">
+                    <div class="card-body text-center">
+                        <h4 class="card-title"><i class="fas fa-users"></i> Users</h4>
+                        <p>Manage registered users.</p>
+                        <a href="{{ url_for('view_users') }}" class="btn btn-dark btn-sm shadow-lg">
+                            <i class="fas fa-users"></i> View Users
+                        </a>
                     </div>
-                    <div id="chartContainer" style="height: 750px;"></div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="col-12">
+                <div class="card shadow-lg border-0 rounded text-white"
+                    style="background: linear-gradient(135deg, #6f42c1, #563d7c); width: 100%;">
+                    <div class="card-body text-center">
+                        <h4 class="card-title"><i class="fas fa-database"></i> Stats</h4>
+                        <p>Total Users: <strong>{{ total_users }}</strong></p>
+                        <p>Total Trades: <strong>{{ total_trades }}</strong></p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- TradingView Integration -->
-<script src="https://s3.tradingview.com/tv.js"></script>
-<script>
-function updateChart() {
-    let symbol = document.getElementById("stockSymbol").value;
-    document.getElementById("chartContainer").innerHTML = "";
-    new TradingView.widget({
-        "container_id": "chartContainer",
-        "autosize": true,
-        "symbol": symbol,
-        "interval": "5",
-        "timezone": "Etc/UTC",
-        "theme": "dark",
-        "style": "1",
-        "locale": "en",
-        "toolbar_bg": "#121212",
-        "hide_side_toolbar": false,
-        "allow_symbol_change": true,
-        "studies": ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]
-    });
-}
-</script>
 
 {% endblock %}
