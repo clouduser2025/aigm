@@ -40,7 +40,8 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
 ##############################################################################
 # 2. Flask & SQLAlchemy
 ##############################################################################
-app = Flask(__name__)
+
+app = Flask(__name__, template_folder='.')
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "MY_SUPER_SECRET_KEY")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///multi_broker_traders.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
