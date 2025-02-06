@@ -27,12 +27,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
     <div class="container">
       <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
-       
-          <!-- Reference the custom route for the logo -->
-          <img src="/ramdoot.jpg" alt="Logo">
-          <span>MultiTradingBroker</span>
-        </a>
-        
+        <img src="/ramdoot.jpg" alt="Logo">
         <span>MultiTradingBroker</span>
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
@@ -45,13 +40,7 @@
               <a class="nav-link" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('place_order') }}"><i class="fas fa-shopping-cart"></i> Place Order</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('view_trades') }}"><i class="fas fa-list"></i> Trades</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('chart') }}"><i class="fas fa-chart-line"></i> Live Chart</a>
+              <a class="nav-link" href="{{ url_for('market_dashboard') }}"><i class="fas fa-chart-line"></i> Market Dashboard</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('admin_logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
