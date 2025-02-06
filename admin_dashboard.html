@@ -23,64 +23,66 @@
     {% endwith %}
 
 <!-- First Row (3 Full-Width Sections) -->
-        <div class="row g-4 mt-4">
-        <!-- Row for Side-by-Side Layout -->
-        <div class="row g-4 mt-4">
-            <!-- Register Users -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card shadow-lg border-0 rounded text-white"
-                    style="background: linear-gradient(135deg, #28a745, #218838); width: 100%;">
-                    <div class="card-body text-center">
-                        <h4 class="card-title"><i class="fas fa-user-plus"></i> Register</h4>
-                        <p>Register a single user or bulk upload.</p>
-                        <a href="{{ url_for('register_user') }}" class="btn btn-dark btn-sm shadow-lg">
-                            <i class="fas fa-user-plus"></i> Add User
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Manage Users -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card shadow-lg border-0 rounded text-white"
-                    style="background: linear-gradient(135deg, #007bff, #0056b3); width: 100%;">
-                    <div class="card-body text-center">
-                        <h4 class="card-title"><i class="fas fa-users"></i> Users</h4>
-                        <p>Manage registered users.</p>
-                        <a href="{{ url_for('view_users') }}" class="btn btn-dark btn-sm shadow-lg">
-                            <i class="fas fa-users"></i> View Users
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stats -->
-            <div class="col-lg-4 col-md-12">
-                <div class="card shadow-lg border-0 rounded text-white"
-                    style="background: linear-gradient(135deg, #6f42c1, #563d7c); width: 100%;">
-                    <div class="card-body text-center">
-                        <h4 class="card-title"><i class="fas fa-database"></i> Stats</h4>
-                        <p>Total Users: <strong>{{ total_users }}</strong></p>
-                        <p>Total Trades: <strong>{{ total_trades }}</strong></p>
-                    </div>
+<div class="row g-4 mt-4">
+    <!-- Row for Side-by-Side Layout -->
+    <div class="row g-4 mt-4">
+        <!-- Register Users -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card shadow-lg border-0 rounded text-white"
+                style="background: linear-gradient(135deg, #28a745, #218838); width: 100%;">
+                <div class="card-body text-center">
+                    <h4 class="card-title"><i class="fas fa-user-plus"></i> Register</h4>
+                    <p>Register a single user or bulk upload.</p>
+                    <a href="{{ url_for('register_user') }}" class="btn btn-dark btn-sm shadow-lg">
+                        <i class="fas fa-user-plus"></i> Add User
+                    </a>
                 </div>
             </div>
         </div>
 
-            <!-- Stats -->
-            <div class="col-12">
-                <div class="card shadow-lg border-0 rounded text-white"
-                    style="background: linear-gradient(135deg, #6f42c1, #563d7c); width: 100%;">
-                    <div class="card-body text-center">
-                        <h4 class="card-title"><i class="fas fa-database"></i> Stats</h4>
-                        <p>Total Users: <strong>{{ total_users }}</strong></p>
-                        <p>Total Trades: <strong>{{ total_trades }}</strong></p>
-                    </div>
+        <!-- Manage Users -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card shadow-lg border-0 rounded text-white"
+                style="background: linear-gradient(135deg, #007bff, #0056b3); width: 100%;">
+                <div class="card-body text-center">
+                    <h4 class="card-title"><i class="fas fa-users"></i> Users</h4>
+                    <p>Manage registered users.</p>
+                    <a href="{{ url_for('view_users') }}" class="btn btn-dark btn-sm shadow-lg">
+                        <i class="fas fa-users"></i> View Users
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="col-lg-4 col-md-12">
+            <div class="card shadow-lg border-0 rounded text-white"
+                style="background: linear-gradient(135deg, #6f42c1, #563d7c); width: 100%;">
+                <div class="card-body text-center">
+                    <h4 class="card-title"><i class="fas fa-database"></i> Stats</h4>
+                    <p>Total Users: <strong>{{ total_users }}</strong></p>
+                    <p>Total Trades: <strong>{{ total_trades }}</strong></p>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    
+        <!-- Market Dashboard Button Section -->
+        <div class="row mt-4">
+            <div class="col-md-12 text-center">
+                <div class="card shadow-lg border-0 rounded"
+                    style="background: #2c3e50; color: white;">
+                    <div class="card-body">
+                        <h4 class="card-title mb-3"><i class="fas fa-chart-line"></i> Market Dashboard</h4>
+                        <p>Jump directly to the live market dashboard to monitor prices and place trades.</p>
+                        <a href="{{ url_for('market_dashboard') }}" class="btn btn-warning btn-lg shadow-lg">
+                            <i class="fas fa-chart-area"></i> Go to Market Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>  <!-- ✅ Closing div added here -->
 
+   
 
 {% endblock %}
