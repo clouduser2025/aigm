@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Market Dashboard</title>
+  <!-- SocketIO (for real-time updates) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 30px auto;
+      max-width: 800px;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    #price {
+      font-size: 40px;
+      font-weight: bold;
+      color: green;
+      margin: 10px 0;
+    }
+    select, button {
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .hidden {
+      display: none;
+    }
+    #trading_section {
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin-top: 20px;
+      text-align: center;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Live Market Dashboard</h1>
+
+  <!-- 1) Symbol Selection -->
+  <h2>Select a Symbol</h2>
+  <select id="symbol">
+    <option value="NIFTY 50">NIFTY 50</option>
+    <option value="BANKNIFTY">BANKNIFTY</option>
+    <option value="RELIANCE">RELIANCE</option>
+    <option value="INFY">INFY</option>
+  </select>
+  <br />
+  
+  <!-- 2) Fetch Live Price -->
+  <button onclick="fetchPrice()">Get Live Price</button>
+
+  <h2>Live Price</h2>
+  <p id="price">₹ --</p>
+
+  <!-- 3) View Charts & Option Chain -->
+  <h2>Select Action</h2>
+  <button onclick="viewCharts()">📊 View Live Charts</button>
+  <button onclick="viewOptionChain()">📜 View Option Chain</button>
+
+  <!-- 4) Trading Section (trend + buy call/put) -->
+  <div id="trading_section" class="hidden">
+    <h2>Trading Actions</h2>
+    <p>Market Trend: <strong id="market_trend">--</strong></p>
+    <button id="buy_call" class="hidden" onclick="placeTrade('CALL')">📈 Buy CALL</button>
+    <button id="buy_put" class="hidden" onclick="placeTrade('PUT')">📉 Buy PUT</button>
+  </div>
+
+  <script>
+    // 1) Fetch Live Price & Show Market Trend
+    function fetchPrice() {
+      const symbol = document.getElementById("symbol").value;
+      fetch("/fetch_price?symbol=" + symbol)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.price) {
+            document.getElementById("price").innerText = "₹" + data.price;
+            checkMarketTrend(); // Check trend after getting price
+          } else {
+            document.getElementById("price").innerText = "No Price Found";
+          }
+        })
+        .catch((err) => console.error("Error fetching price:", err));
+    }
+
+    // 2) Market Trend Check (UP or DOWN)
+    function checkMarketTrend() {
+      const symbol = document.getElementById("symbol").value;
+      fetch("/market_trend?symbol=" + symbol)
+        .then((res) => res.json())
+        .then((data) => {
+          const trendElem = document.getElementById("market_trend");
+          const tradingSection = document.getElementById("trading_section");
+          const buyCallBtn = document.getElementById("buy_call");
+          const buyPutBtn = document.getElementById("buy_put");
+
+          trendElem.innerText = data.trend ? data.trend : "--";
+          tradingSection.classList.remove("hidden");
+
+          if (data.trend === "UP") {
+            buyCallBtn.classList.remove("hidden");
+            buyPutBtn.classList.add("hidden");
+          } else if (data.trend === "DOWN") {
+            buyPutBtn.classList.remove("hidden");
+            buyCallBtn.classList.add("hidden");
+          } else {
+            // No clear trend
+            buyCallBtn.classList.add("hidden");
+            buyPutBtn.classList.add("hidden");
+          }
+        })
+        .catch((err) => console.error("Error fetching trend:", err));
+    }
+
+    // 3) View Live Chart
+    function viewCharts() {
+      const symbol = document.getElementById("symbol").value;
+      // E.g., /live_chart?symbol=NIFTY 50
+      window.location.href = "/live_chart?symbol=" + symbol;
+    }
+
+    // 4) View Option Chain
+    function viewOptionChain() {
+      const symbol = document.getElementById("symbol").value;
+      // E.g., /option_chain?symbol=NIFTY 50
+      window.location.href = "/option_chain?symbol=" + symbol;
+    }
+
+    // 5) Place Trade (Buy CALL / BUY PUT)
+    function placeTrade(type) {
+      const symbol = document.getElementById("symbol").value;
+      // If your endpoint requires "user_ids", adapt accordingly. 
+      // For now, we send just symbol/type, or you can handle user selection in the backend.
+      fetch("/place_trade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          symbol: symbol,
+          type: type
+          // user_ids: [1,2,...] // If you want multi-user selection
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            alert("Trade Placed:\n" + JSON.stringify(data.placed_orders, null, 2));
+          } else if (data.error) {
+            alert("Error placing trade:\n" + data.error);
+          } else {
+            alert(JSON.stringify(data));
+          }
+        })
+        .catch((err) => console.error("Error placing trade:", err));
+    }
+
+    // OPTIONAL: SocketIO for Real-Time Updates
+    // var socket = io.connect();
+    // socket.on("new_trade", function(tradeData) {
+    //   console.log("New Trade:", tradeData);
+    //   // Possibly display a notification or update a trades table
+    // });
+  </script>
+</body>
+</html>
